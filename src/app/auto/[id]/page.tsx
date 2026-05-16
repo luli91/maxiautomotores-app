@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { ShieldAlert, ChevronLeft, CheckCircle2, XCircle, BadgeCheck, CalendarDays, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, ChevronLeft, CheckCircle2, XCircle, BadgeCheck, CalendarDays, AlertTriangle, PlayCircle } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DetalleAuto() {
   const params = useParams();
   const id = params?.id;
   const [auto, setAuto] = useState<any>(null);
+  const [fotoActiva, setFotoActiva] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -22,8 +23,22 @@ export default function DetalleAuto() {
 
   if (!auto) return <div className="p-10 text-center font-black text-black">Cargando Ficha Técnica...</div>;
 
-  // Mensaje prearmado para WhatsApp
   const mensajeWhatsApp = `Hola Maxi. Ya leí toda la ficha técnica en la web y estoy interesado en agendar una cita para ver/comprar el ${auto.titulo} (Lote ${auto.numero_lote}). ¿Qué horarios tenés disponibles?`;
+
+  // Determinamos qué fotos mostrar: las reales o una de relleno si no cargó ninguna
+  const fotosAMostrar = auto.fotos && auto.fotos.length > 0 
+    ? auto.fotos 
+    : ['https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1000']; // Foto genérica por defecto
+
+  // Extraemos el ID del video de YouTube de la URL que pegó Maxi
+  const getYouTubeId = (url: string) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const youtubeId = getYouTubeId(auto.video_youtube);
 
   return (
     <main className="min-h-screen bg-gray-50 pb-20 text-black font-sans">
@@ -35,13 +50,57 @@ export default function DetalleAuto() {
 
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* COLUMNA IZQUIERDA: GALERÍA Y FICHA (Ocupa 2/3 del espacio) */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-gray-200 aspect-video rounded-[2rem] flex items-center justify-center border border-gray-300 shadow-inner">
-             <span className="text-gray-400 font-black uppercase text-xs tracking-widest">Galería de Imágenes</span>
+          <div className="space-y-6">
+            
+            {/* Carrusel Dinámico */}
+            <div className="space-y-3">
+              <div className="w-full aspect-video bg-gray-100 rounded-[2rem] overflow-hidden shadow-lg border border-gray-200 relative">
+                <img src={fotosAMostrar[fotoActiva]} alt="Vista del vehículo" className="w-full h-full object-cover" />
+              </div>
+              
+              {/* Solo mostramos miniaturas si hay más de una foto */}
+              {fotosAMostrar.length > 1 && (
+                <div className="grid grid-cols-4 md:grid-cols-5 gap-3">
+                  {fotosAMostrar.map((foto: string, index: number) => (
+                    <button 
+                      key={index}
+                      onClick={() => setFotoActiva(index)}
+                      className={`aspect-video rounded-xl overflow-hidden border-4 transition-all ${
+                        fotoActiva === index ? 'border-black scale-95 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={foto} alt={`Miniatura ${index + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Video Dinámico de YouTube */}
+            {youtubeId && (
+              <div className="mt-8">
+                <h3 className="text-xs font-black mb-4 uppercase tracking-[0.2em] text-gray-400 border-b pb-2 flex items-center gap-2">
+                  <PlayCircle size={16} className="text-red-600" /> Video Demostración
+                </h3>
+                <div className="w-full aspect-video rounded-[2rem] overflow-hidden shadow-lg relative border border-gray-200 bg-black">
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src={`https://www.youtube.com/embed/${youtubeId}`} 
+                    title="YouTube video player" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                    className="absolute top-0 left-0 w-full h-full"
+                  ></iframe>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+          {/* ... Todo el resto de la página (Ficha, Documentación, Precio) se mantiene idéntico ... */}
+          <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm mt-8">
             <h3 className="text-sm font-black mb-6 uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Descripción Técnica Completa</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
                 {[
@@ -86,10 +145,8 @@ export default function DetalleAuto() {
           </div>
         </div>
 
-        {/* COLUMNA DERECHA: PRECIO Y CONTACTO ESTRICTO (Ocupa 1/3) */}
         <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-8 h-fit">
           <div className="bg-white p-8 rounded-[2.5rem] border border-gray-200 shadow-2xl">
-            
             <div className="mb-6">
               <div className={`inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-4 ${auto.tipo_publicacion === 'Propio' ? 'bg-black text-white' : 'bg-yellow-500 text-black'}`}>
                 {auto.tipo_publicacion === 'Propio' ? 'Stock Directo Maxi' : 'Oportunidad de la Red'}
@@ -103,7 +160,6 @@ export default function DetalleAuto() {
                 <p className="text-4xl font-black text-green-600">${auto.precio_venta.toLocaleString()}</p>
             </div>
 
-            {/* ADVERTENCIA ANTI-CURIOSOS */}
             <div className="bg-yellow-50 p-4 rounded-2xl border border-yellow-200 mb-6">
                 <div className="flex items-start">
                     <AlertTriangle className="text-yellow-600 mr-2 shrink-0 mt-0.5" size={16} />
