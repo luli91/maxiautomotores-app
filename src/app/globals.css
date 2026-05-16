@@ -24,3 +24,22 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* --- ESTILOS PERSONALIZADOS --- */
+
+/* Quita las flechitas de los campos de números */
+input::-webkit-outer-spin-button, 
+input::-webkit-inner-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+input[type=number] { 
+  -moz-appearance: textfield; 
+}
+
+/* Oculta el placeholder al hacer click adentro del campo */
+input:focus::placeholder, 
+textarea:focus::placeholder {
+  color: transparent;
+}
