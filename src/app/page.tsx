@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Car, Zap, ChevronRight, Star, BellRing, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Car, Zap, ChevronRight, Star, BellRing, CheckCircle2, AlertCircle, Eye } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Home() {
@@ -11,12 +11,15 @@ export default function Home() {
   
   const [celular, setCelular] = useState('');
   const [guardandoCelular, setGuardandoCelular] = useState(false);
-  // Nuevo estado para los mensajes personalizados (reemplaza al alert)
   const [mensajeStatus, setMensajeStatus] = useState<{ tipo: 'exito' | 'error' | 'info'; texto: string } | null>(null);
 
   useEffect(() => {
     async function traerVehiculos() {
-      const { data } = await supabase.from('vehiculos').select('*').eq('activo', true);
+      const { data } = await supabase.from('vehiculos')
+        .select('*')
+        .eq('activo', true)
+        .order('es_sold', { ascending: true }) 
+        .order('created_at', { ascending: false });
       setVehiculos(data || []);
       setLoading(false);
     }
@@ -33,12 +36,7 @@ export default function Home() {
     setMensajeStatus(null);
 
     try {
-      // 1. COMPROBACIÓN: ¿Ya existe este número?
-      const { data: existe } = await supabase
-        .from('club_inversores')
-        .select('id')
-        .eq('whatsapp', celular)
-        .maybeSingle();
+      const { data: existe } = await supabase.from('club_inversores').select('id').eq('whatsapp', celular).maybeSingle();
 
       if (existe) {
         setMensajeStatus({ tipo: 'info', texto: '¡Ya estás en la lista! Te avisaremos cuando haya novedades.' });
@@ -47,10 +45,7 @@ export default function Home() {
         return;
       }
 
-      // 2. SI NO EXISTE: Lo guardamos
-      const { error } = await supabase.from('club_inversores').insert([
-        { whatsapp: celular, nombre: 'Usuario Web', activo: true }
-      ]);
+      const { error } = await supabase.from('club_inversores').insert([{ whatsapp: celular, nombre: 'Usuario Web', activo: true }]);
 
       if (error) throw error;
 
@@ -67,7 +62,7 @@ export default function Home() {
   const propios = vehiculos.filter(v => v.tipo_publicacion === 'Propio');
   const oportunidades = vehiculos.filter(v => v.tipo_publicacion === 'Oportunidad');
 
-  if (loading) return <div className="p-10 text-center font-black text-black tracking-widest uppercase">Cargando catálogo...</div>;
+  if (loading) return <div className="p-10 text-center font-black text-black tracking-widest uppercase animate-pulse">Cargando catálogo...</div>;
 
   return (
     <main className="min-h-screen bg-gray-50 text-black font-sans">
@@ -77,7 +72,6 @@ export default function Home() {
         <p className="text-yellow-500 font-bold uppercase tracking-widest text-sm">Venta Directa & Oportunidades</p>
       </header>
 
-      {/* ALERTAS DE WHATSAPP CTA ACTUALIZADO */}
       <section className="max-w-6xl mx-auto mt-6 mb-16 px-4 relative z-10">
         <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 p-8 md:p-10 rounded-[2.5rem] shadow-2xl border-4 border-white">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
@@ -97,7 +91,7 @@ export default function Home() {
                   value={celular}
                   onChange={(e) => {
                     setCelular(e.target.value);
-                    if(mensajeStatus) setMensajeStatus(null); // Limpiar mensaje al escribir
+                    if(mensajeStatus) setMensajeStatus(null);
                   }}
                   className="flex-grow md:w-64 p-4 rounded-2xl bg-white/90 border-none outline-none font-bold text-black" 
                 />
@@ -110,7 +104,6 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* MENSAJE DE ESTADO PERSONALIZADO (En lugar del alert de localhost) */}
               {mensajeStatus && (
                 <div className={`flex items-center gap-2 p-3 rounded-xl font-bold text-[11px] uppercase tracking-wide animate-pulse ${
                   mensajeStatus.tipo === 'exito' ? 'bg-green-100 text-green-700' : 
@@ -150,9 +143,8 @@ export default function Home() {
   );
 }
 
-// El componente CardVehiculo se mantiene igual
+// Componente CardVehiculo actualizado con Vistas
 function CardVehiculo({ v, color }: { v: any, color: string }) {
-  // Verificamos si el auto tiene fotos cargadas
   const tieneFoto = v.fotos && v.fotos.length > 0;
   const fotoPrincipal = tieneFoto ? v.fotos[0] : null;
 
@@ -160,28 +152,38 @@ function CardVehiculo({ v, color }: { v: any, color: string }) {
     <Link href={`/auto/${v.id}`} className="group">
       <div className="bg-white rounded-[2rem] overflow-hidden shadow-lg border border-gray-100 hover:shadow-2xl transition-all transform hover:-translate-y-2">
         
-        {/* ZONA DE IMAGEN DINÁMICA */}
         <div className="bg-gray-200 h-56 flex items-center justify-center relative overflow-hidden">
           {tieneFoto ? (
-            <img src={fotoPrincipal} alt={v.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <img src={fotoPrincipal} alt={v.titulo} className={`w-full h-full object-cover transition-transform duration-500 ${v.es_sold ? 'opacity-60 grayscale' : 'group-hover:scale-105'}`} />
           ) : (
             <Car size={60} className="text-gray-400 opacity-50 group-hover:scale-110 transition-transform" />
           )}
           
-          <div className={`absolute top-4 left-4 ${color === 'black' ? 'bg-black text-white' : 'bg-yellow-500 text-black'} text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md`}>
-            {v.tipo_publicacion === 'Propio' ? 'Stock inmediato' : 'Oportunidad'}
+          <div className={`absolute top-4 left-4 ${
+            v.es_sold ? 'bg-red-600 text-white animate-pulse' : color === 'black' ? 'bg-black text-white' : 'bg-yellow-500 text-black'
+          } text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-md`}>
+            {v.es_sold ? 'Vendido 🚫' : v.tipo_publicacion === 'Propio' ? 'Stock Inmediato' : 'Oportunidad'}
           </div>
         </div>
 
         <div className="p-8">
-          <h3 className="text-xl font-black text-gray-900 mb-1 uppercase leading-none truncate" title={v.titulo}>{v.titulo}</h3>
-          <p className="text-gray-400 font-bold text-xs mb-6 uppercase">{v.año} • {v.kilometraje} KM</p>
+          <h3 className="text-xl font-black text-gray-900 mb-2 uppercase leading-tight truncate" title={v.titulo}>{v.titulo}</h3>
+          
+          {/* Fila de info con las vistas agregadas */}
+          <div className="flex items-center justify-between text-gray-400 font-bold text-xs mb-6 uppercase">
+            <span>{v.año} • {v.kilometraje} KM</span>
+            {/* Si tiene vistas, mostramos el ojito */}
+            <span className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-md text-[10px] text-gray-500">
+              <Eye size={12} /> {v.vistas || 0}
+            </span>
+          </div>
+
           <div className="flex justify-between items-center border-t border-gray-50 pt-6">
             <div>
               <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Precio Final</p>
-              <p className="text-2xl font-black text-green-600">${v.precio_venta.toLocaleString()}</p>
+              <p className={`text-2xl font-black ${v.es_sold ? 'text-gray-400 line-through' : 'text-green-600'}`}>${v.precio_venta.toLocaleString()}</p>
             </div>
-            <div className="bg-gray-50 p-3 rounded-2xl group-hover:bg-black group-hover:text-white transition-colors">
+            <div className={`p-3 rounded-2xl transition-colors ${v.es_sold ? 'bg-gray-100 text-gray-400' : 'bg-gray-50 group-hover:bg-black group-hover:text-white'}`}>
               <ChevronRight size={20} />
             </div>
           </div>

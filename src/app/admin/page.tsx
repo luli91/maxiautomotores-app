@@ -3,249 +3,212 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { PackagePlus, Car, ClipboardCheck, Tag, Layers, CheckCircle2, AlertCircle, Camera, Video, X } from 'lucide-react';
+import { Car, DollarSign, CheckSquare, Package, Trophy, Zap, TrendingUp, TrendingDown } from 'lucide-react';
 
-export default function AdminPage() {
+export default function AdminDashboardPage() {
   const router = useRouter();
-  const [autorizado, setAutorizado] = useState(false);
-  const [verificando, setVerificando] = useState(true);
-  
-  const [loading, setLoading] = useState(false);
-  const [proximoLote, setProximoLote] = useState('');
-  const [refreshLote, setRefreshLote] = useState(0); 
-  const [mensajeStatus, setMensajeStatus] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
-
-  // --- NUEVOS ESTADOS PARA FOTOS ---
-  const [archivosFotos, setArchivosFotos] = useState<File[]>([]);
-  const [previsualizaciones, setPrevisualizaciones] = useState<string[]>([]);
-  const [subiendoFotos, setSubiendoFotos] = useState(false);
+  const [listaVehiculos, setListaVehiculos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function verificarPermisosAdmin() {
+    async function initAdmin() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { router.push('/login'); return; }
-      const { data: perfil } = await supabase.from('usuarios_perfiles').select('es_admin').eq('id', session.user.id).single();
-      if (!perfil || !perfil.es_admin) { router.push('/'); } else { setAutorizado(true); }
-      setVerificando(false);
+      
+      const { data } = await supabase.from('vehiculos').select('*');
+      setListaVehiculos(data || []);
+      setLoading(false);
     }
-    verificarPermisosAdmin();
+    initAdmin();
   }, [router]);
 
-  useEffect(() => {
-    async function obtenerMaximoLote() {
-      const { data } = await supabase.from('vehiculos').select('numero_lote');
-      if (data && data.length > 0) {
-        const numeros = data.map(v => parseInt(v.numero_lote.replace('#', ''))).filter(n => !isNaN(n));
-        if (numeros.length > 0) setProximoLote(`#${(Math.max(...numeros) + 1).toString().padStart(3, '0')}`);
-        else setProximoLote('#001');
-      } else setProximoLote('#001');
-    }
-    if (autorizado) obtenerMaximoLote();
-  }, [refreshLote, autorizado]); 
+  if (loading) return <div className="h-64 flex items-center justify-center font-black uppercase tracking-widest text-gray-400 animate-pulse">Calculando métricas...</div>;
 
-  // --- FUNCIÓN PARA MANEJAR LA SELECCIÓN DE FOTOS ---
-  const handleSeleccionarFotos = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const nuevosArchivos = Array.from(e.target.files);
-      setArchivosFotos(prev => [...prev, ...nuevosArchivos]);
+  // --- CÁLCULOS GENERALES ---
+  const mTotal = listaVehiculos.length;
+  const mVendidos = listaVehiculos.filter(v => v.es_sold).length;
+  const mDisponibles = mTotal - mVendidos;
+  const capitalVendido = listaVehiculos.filter(v => v.es_sold).reduce((sum, v) => sum + Number(v.precio_venta), 0);
+
+  // --- CÁLCULOS MENSUALES (Métricas avanzadas) ---
+  const ahora = new Date();
+  const mesActual = ahora.getMonth();
+  const añoActual = ahora.getFullYear();
+  const mesPasado = mesActual === 0 ? 11 : mesActual - 1;
+  const añoMesPasado = mesActual === 0 ? añoActual - 1 : añoActual;
+
+  let ingresadosEsteMes = 0;
+  let ingresadosMesPasado = 0;
+  let ingresosEsteMes = 0;
+  let ingresosMesPasado = 0;
+  let autoMasRapido: any = null;
+  let menorTiempoVenta = Infinity;
+
+  listaVehiculos.forEach(v => {
+    const fechaCreacion = new Date(v.created_at);
+    if (fechaCreacion.getMonth() === mesActual && fechaCreacion.getFullYear() === añoActual) ingresadosEsteMes++;
+    if (fechaCreacion.getMonth() === mesPasado && fechaCreacion.getFullYear() === añoMesPasado) ingresadosMesPasado++;
+
+    if (v.es_sold && v.fecha_venta) {
+      const fechaVenta = new Date(v.fecha_venta);
       
-      const nuevasPrevisualizaciones = nuevosArchivos.map(file => URL.createObjectURL(file));
-      setPrevisualizaciones(prev => [...prev, ...nuevasPrevisualizaciones]);
-    }
-  };
+      // Sumamos dinero del mes actual y pasado
+      if (fechaVenta.getMonth() === mesActual && fechaVenta.getFullYear() === añoActual) ingresosEsteMes += Number(v.precio_venta);
+      if (fechaVenta.getMonth() === mesPasado && fechaVenta.getFullYear() === añoMesPasado) ingresosMesPasado += Number(v.precio_venta);
 
-  const eliminarFotoPrevia = (index: number) => {
-    setArchivosFotos(prev => prev.filter((_, i) => i !== index));
-    setPrevisualizaciones(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setMensajeStatus(null);
-    const formData = new FormData(e.currentTarget);
-    
-    let urlsFotosSubidas: string[] = [];
-
-    // --- PROCESO DE SUBIDA DE FOTOS A SUPABASE STORAGE ---
-    if (archivosFotos.length > 0) {
-      setSubiendoFotos(true);
-      for (const foto of archivosFotos) {
-        const fileExt = foto.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`; // Nombre random para que no se pisen
-        const filePath = `${proximoLote.replace('#', '')}/${fileName}`; // Carpeta por lote
-
-        const { error: uploadError, data } = await supabase.storage.from('vehiculos_fotos').upload(filePath, foto);
-        
-        if (uploadError) {
-          setMensajeStatus({ tipo: 'error', texto: 'Error al subir foto: ' + uploadError.message });
-          setLoading(false); setSubiendoFotos(false); return;
-        }
-
-        if (data) {
-          const { data: publicUrlData } = supabase.storage.from('vehiculos_fotos').getPublicUrl(filePath);
-          urlsFotosSubidas.push(publicUrlData.publicUrl);
-        }
+      // Calculamos venta más rápida (Días de diferencia)
+      const diffTiempo = Math.abs(fechaVenta.getTime() - fechaCreacion.getTime());
+      const diasVenta = Math.floor(diffTiempo / (1000 * 60 * 60 * 24));
+      
+      if (diasVenta < menorTiempoVenta) {
+        menorTiempoVenta = diasVenta;
+        autoMasRapido = { titulo: v.titulo, dias: diasVenta, lote: v.numero_lote };
       }
-      setSubiendoFotos(false);
     }
+  });
 
-    const nuevoVehiculo = {
-      titulo: formData.get('titulo'),
-      numero_lote: proximoLote,
-      tipo_publicacion: formData.get('tipo_publicacion'),
-      año: Number(formData.get('año')),
-      combustible: formData.get('combustible'),
-      caja_cambios: formData.get('caja_cambios'),
-      kilometraje: formData.get('kilometraje'),
-      ubicacion: formData.get('ubicacion'),
-      radicacion: formData.get('radicacion'),
-      tipo_tramite: formData.get('tramite'),
-      estado_detalle: formData.get('estado_detalle'),
-      precio_venta: Number(formData.get('precio')),
-      observaciones: formData.get('observaciones'),
-      video_youtube: formData.get('video_youtube') || null, // Guardamos el link
-      fotos: urlsFotosSubidas, // Guardamos los links de las fotos
-      vtv: formData.get('vtv') === 'on',
-      verificacion_policial: formData.get('verificacion_policial') === 'on',
-      informe_dominio: formData.get('informe_dominio') === 'on',
-      libre_deuda: formData.get('libre_deuda') === 'on',
-      activo: true
-    };
-
-    const { error } = await supabase.from('vehiculos').insert([nuevoVehiculo]);
-    
-    if (error) {
-      setMensajeStatus({ tipo: 'error', texto: error.message });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      setMensajeStatus({ tipo: 'exito', texto: '¡Vehículo publicado con éxito en la web!' });
-      (e.target as HTMLFormElement).reset(); 
-      setArchivosFotos([]);
-      setPrevisualizaciones([]);
-      setRefreshLote(prev => prev + 1); 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      setTimeout(() => setMensajeStatus(null), 4000);
-    }
-    setLoading(false);
+  // Funciones para calcular porcentajes de crecimiento
+  const calcCrecimiento = (actual: number, pasado: number) => {
+    if (pasado === 0) return actual > 0 ? 100 : 0;
+    return Math.round(((actual - pasado) / pasado) * 100);
   };
+  
+  const crecIngresos = calcCrecimiento(ingresosEsteMes, ingresosMesPasado);
+  const crecIngresosColor = crecIngresos >= 0 ? 'text-green-500' : 'text-red-500';
 
-  if (verificando || !autorizado) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="p-10 text-center font-black text-black tracking-widest uppercase animate-pulse">Verificando credenciales...</div></div>;
+  // --- RANKING DE MARCAS ---
+  const autosVendidos = listaVehiculos.filter(v => v.es_sold);
+  const ranking: Record<string, number> = {};
+  autosVendidos.forEach(v => {
+    const marca = v.titulo.split(' ')[0].toUpperCase();
+    ranking[marca] = (ranking[marca] || 0) + 1;
+  });
+
+  const rankingOrdenado = Object.entries(ranking)
+    .map(([marca, cantidad]) => ({ marca, cantidad, porcentaje: Math.round((cantidad / Math.max(mVendidos, 1)) * 100) }))
+    .sort((a, b) => b.cantidad - a.cantidad)
+    .slice(0, 5);
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8 text-black">
-      <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden font-sans relative">
-        
-        {mensajeStatus && (
-          <div className={`absolute top-0 left-0 w-full p-4 text-center font-black text-xs uppercase tracking-widest ${mensajeStatus.tipo === 'exito' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-            <span className="flex items-center justify-center gap-2">{mensajeStatus.tipo === 'exito' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />} {mensajeStatus.texto}</span>
-          </div>
-        )}
+    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
+      <div>
+        <h1 className="text-3xl font-black text-black uppercase tracking-tighter">Panel de Control</h1>
+        <p className="text-gray-500 font-medium text-sm mt-1">Rendimiento y métricas de crecimiento de MaxiAutomotores.</p>
+      </div>
 
-        <div className={`bg-black p-8 text-center flex flex-col items-center ${mensajeStatus ? 'pt-16' : ''}`}>
-          <PackagePlus className="text-yellow-500 mb-2" size={32} />
-          <h1 className="text-2xl font-black text-white uppercase tracking-tighter">Administración de Stock</h1>
-          <div className="mt-2 bg-yellow-500 text-black px-4 py-1 rounded-full text-xs font-black uppercase">Siguiente Lote: {proximoLote}</div>
+      {/* MÉTRICAS MENSUALES (Destacadas) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        {/* INGRESOS DEL MES */}
+        <div className="bg-black text-white p-6 rounded-[2rem] shadow-xl flex flex-col justify-between border border-neutral-800">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Facturación del Mes</p>
+              <p className="text-3xl font-black text-green-400">${ingresosEsteMes.toLocaleString()}</p>
+            </div>
+            <div className="bg-white/10 p-3 rounded-2xl"><DollarSign className="h-5 w-5 text-green-400" /></div>
+          </div>
+          <p className={`text-xs font-bold flex items-center gap-1 ${crecIngresosColor}`}>
+            {crecIngresos >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+            {crecIngresos >= 0 ? '+' : ''}{crecIngresos}% vs mes pasado
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-10 space-y-8 text-black">
-          
-          <section className="bg-gray-50 p-6 rounded-3xl border border-gray-200">
-            <h3 className="text-xs font-black uppercase text-gray-400 mb-4 tracking-widest flex items-center"><Layers className="mr-2" size={16} /> Clasificación</h3>
-            <select name="tipo_publicacion" required className="w-full p-4 rounded-2xl bg-white border-2 border-gray-100 shadow-sm font-bold text-black outline-none focus:border-yellow-500">
-              <option value="Propio">Stock Propio</option><option value="Oportunidad">Oferta de Terceros</option>
-            </select>
-          </section>
+        {/* AUTOS INGRESADOS ESTE MES */}
+        <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Ingresos de Unidades</p>
+              <p className="text-3xl font-black text-black">{ingresadosEsteMes} <span className="text-sm text-gray-400">Autos</span></p>
+            </div>
+            <div className="bg-gray-100 p-3 rounded-2xl"><Package className="h-5 w-5 text-gray-600" /></div>
+          </div>
+          <p className="text-xs font-bold text-gray-500 flex items-center gap-1">
+            Mes pasado ingresaron: {ingresadosMesPasado}
+          </p>
+        </div>
 
-          {/* --- NUEVA SECCIÓN MULTIMEDIA --- */}
-          <section className="space-y-4">
-            <h3 className="text-sm font-black border-b pb-2 flex items-center text-gray-400 uppercase tracking-widest"><Camera className="mr-2 text-black" size={18} /> Fotos y Video</h3>
-            
-            <div className="bg-gray-50 p-6 rounded-3xl border border-dashed border-gray-300">
-              <label className="flex flex-col items-center justify-center cursor-pointer">
-                <div className="bg-black text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-gray-800 transition-colors">
-                  Seleccionar Fotos
-                </div>
-                <input type="file" multiple accept="image/*" onChange={handleSeleccionarFotos} className="hidden" />
-                <p className="text-[10px] text-gray-400 font-bold mt-3 uppercase">Podés elegir varias fotos a la vez</p>
-              </label>
-
-              {previsualizaciones.length > 0 && (
-                <div className="grid grid-cols-3 md:grid-cols-4 gap-4 mt-6">
-                  {previsualizaciones.map((src, index) => (
-                    <div key={index} className="relative aspect-square rounded-xl overflow-hidden border-2 border-gray-200 group">
-                      <img src={src} className="w-full h-full object-cover" alt="Previa" />
-                      <button type="button" onClick={() => eliminarFotoPrevia(index)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+        {/* VENTA RÉCORD */}
+        <div className="bg-gradient-to-br from-yellow-400 to-yellow-500 p-6 rounded-[2rem] shadow-sm flex flex-col justify-between text-black">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <p className="text-[10px] font-black uppercase text-black/60 tracking-widest mb-1">Venta Más Rápida ⚡</p>
+              {autoMasRapido ? (
+                <p className="text-2xl font-black leading-tight truncate max-w-[150px]">{autoMasRapido.titulo}</p>
+              ) : (
+                <p className="text-lg font-black text-black/50">Sin registros</p>
               )}
             </div>
-
-            <div>
-              <label className="text-[10px] font-black uppercase text-gray-400 ml-1 flex items-center">
-                <Video size={12} className="mr-1 text-red-500" /> Link Video de YouTube (Opcional)
-              </label>
-              <input name="video_youtube" placeholder="Ej: https://www.youtube.com/watch?v=..." className="w-full p-3 border rounded-xl bg-white text-black outline-none focus:border-red-500" />
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h3 className="text-sm font-black border-b pb-2 flex items-center text-gray-400 uppercase tracking-widest"><Car className="mr-2" size={18} /> Ficha Técnica</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Título / Modelo Exacto</label><input name="titulo" required placeholder="Ej: PEUGEOT 307 XS 1.6 4P 110 CV" className="w-full p-3 border rounded-xl bg-white text-black font-bold outline-none focus:border-yellow-500" /></div>
-              <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Año</label><input name="año" type="number" required placeholder="2008" className="w-full p-3 border rounded-xl bg-white text-black outline-none" /></div>
-              <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Kilometraje</label><input name="kilometraje" placeholder="249.409" className="w-full p-3 border rounded-xl bg-white text-black outline-none" /></div>
-              <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Combustible</label><input name="combustible" placeholder="NAFTA" className="w-full p-3 border rounded-xl bg-white text-black outline-none" /></div>
-              <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Caja de Cambio</label><input name="caja_cambios" placeholder="MANUAL" className="w-full p-3 border rounded-xl bg-white text-black outline-none" /></div>
-              <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Ubicación</label><input name="ubicacion" placeholder="LANUS ESTE" className="w-full p-3 border rounded-xl bg-white text-black outline-none" /></div>
-              <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Radicación</label><input name="radicacion" placeholder="LANUS" className="w-full p-3 border rounded-xl bg-white text-black outline-none" /></div>
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h3 className="text-sm font-black border-b pb-2 flex items-center text-gray-400 uppercase tracking-widest"><ClipboardCheck className="mr-2" size={18} /> Documentación y Estado</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Trámite de Venta</label>
-                <select name="tramite" className="w-full p-3 border rounded-xl bg-white text-black font-bold outline-none">
-                  <option value="08 Firmado - Listo para transferir">08 Firmado - Listo para transferir</option><option value="Transferencia Directa">Transferencia Directa</option><option value="08 en trámite">08 en trámite</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Estado Visual</label>
-                <select name="estado_detalle" className="w-full p-3 border rounded-xl bg-white text-black font-bold outline-none">
-                  <option value="Funcionando (Sin detalles)">Funcionando (Sin detalles)</option><option value="Funcionando (Detalles estéticos)">Funcionando (Detalles estéticos)</option><option value="Chocado (Siniestro)">Chocado (Siniestro)</option><option value="Volcado (Siniestro)">Volcado (Siniestro)</option><option value="Para Reparar (Mecánica)">Para Reparar (Mecánica)</option>
-                </select>
-              </div>
-              <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-2 bg-gray-50 p-3 rounded-xl border border-dashed border-gray-300">
-                {['verificacion_policial', 'informe_dominio', 'libre_deuda', 'vtv'].map(item => (
-                  <label key={item} className="flex items-center text-[10px] font-black uppercase cursor-pointer"><input type="checkbox" name={item} className="mr-2 w-4 h-4 accent-yellow-600" /> {item.replace('_', ' ')}</label>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <h3 className="text-sm font-black border-b pb-2 flex items-center text-gray-400 uppercase tracking-widest"><Tag className="mr-2 text-green-600" size={18} /> Valor</h3>
-            <div>
-                <label className="text-[10px] font-black uppercase text-green-700 ml-1">Precio Fijo ($)</label>
-                <input name="precio" type="number" required placeholder="Ej: 3500000" className="w-full p-4 border-2 border-green-100 rounded-2xl bg-white text-black font-black text-sm outline-none focus:border-green-500" />
-            </div>
-          </section>
-
-          <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Observaciones</label>
-            <textarea name="observaciones" rows={3} className="w-full p-3 border rounded-xl bg-white text-black outline-none focus:border-yellow-500"></textarea>
+            <div className="bg-black/10 p-3 rounded-2xl"><Zap className="h-5 w-5 text-black" /></div>
           </div>
-          
-          <button type="submit" disabled={loading || subiendoFotos} className="w-full bg-black text-white font-black py-5 rounded-2xl uppercase tracking-widest hover:bg-gray-800 transition-all shadow-xl active:scale-95 disabled:bg-gray-600">
-            {subiendoFotos ? 'SUBIENDO FOTOS...' : loading ? 'GUARDANDO...' : 'PUBLICAR EN CATÁLOGO'}
-          </button>
-        </form>
+          {autoMasRapido ? (
+             <p className="text-xs font-bold text-black/70">
+              Vendido en <span className="bg-black text-white px-2 py-0.5 rounded-md">{autoMasRapido.dias === 0 ? 'Horas' : `${autoMasRapido.dias} días`}</span> (Lote {autoMasRapido.lote})
+             </p>
+          ) : (
+            <p className="text-xs font-bold text-black/50">Faltan datos de venta</p>
+          )}
+        </div>
+
       </div>
-    </main>
+
+      {/* MÉTRICAS HISTÓRICAS Y RANKING */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* TARJETITAS CHICAS HISTÓRICAS */}
+        <div className="lg:col-span-1 space-y-4">
+          <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex justify-between items-center">
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Stock Disponible</p>
+              <p className="text-2xl font-black text-blue-600">{mDisponibles} Unidades</p>
+            </div>
+            <div className="bg-blue-50 p-3 rounded-2xl"><Car className="h-5 w-5 text-blue-600" /></div>
+          </div>
+
+          <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex justify-between items-center">
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Total Histórico Vendido</p>
+              <p className="text-2xl font-black text-yellow-500">{mVendidos} Unidades</p>
+            </div>
+            <div className="bg-yellow-50 p-3 rounded-2xl"><CheckSquare className="h-5 w-5 text-yellow-600" /></div>
+          </div>
+
+          <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex justify-between items-center">
+            <div>
+              <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest mb-1">Capital Histórico</p>
+              <p className="text-2xl font-black text-green-600">${capitalVendido.toLocaleString()}</p>
+            </div>
+            <div className="bg-green-50 p-3 rounded-2xl"><DollarSign className="h-5 w-5 text-green-600" /></div>
+          </div>
+        </div>
+
+        {/* RANKING GRÁFICO */}
+        <div className="lg:col-span-2 bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
+          <h2 className="text-xl font-black uppercase tracking-tighter mb-6 flex items-center gap-2">
+            <Trophy className="text-yellow-500" /> Marcas Más Vendidas Histórico
+          </h2>
+          {rankingOrdenado.length === 0 ? (
+            <div className="h-32 flex items-center justify-center border-2 border-dashed border-gray-100 rounded-2xl">
+              <p className="text-sm font-bold text-gray-400 text-center">Todavía no hay ventas para armar el gráfico.</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {rankingOrdenado.map((item, index) => (
+                <div key={index}>
+                  <div className="flex justify-between text-xs font-black uppercase text-gray-700 mb-2">
+                    <span>{item.marca}</span>
+                    <span>{item.cantidad} Unds. ({item.porcentaje}%)</span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                    <div className="bg-yellow-500 h-3 rounded-full transition-all duration-1000" style={{ width: `${item.porcentaje}%` }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
   );
 }

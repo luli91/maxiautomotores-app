@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { ShieldAlert, ChevronLeft, CheckCircle2, XCircle, BadgeCheck, CalendarDays, AlertTriangle, PlayCircle } from 'lucide-react';
+import { ShieldAlert, ChevronLeft, CheckCircle2, XCircle, BadgeCheck, CalendarDays, AlertTriangle, PlayCircle, Eye } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DetalleAuto() {
@@ -16,7 +16,13 @@ export default function DetalleAuto() {
     if (!id) return;
     async function cargar() {
       const { data } = await supabase.from('vehiculos').select('*').eq('id', id).single();
-      setAuto(data);
+      if (data) {
+        setAuto(data);
+        
+        // Sumamos 1 visita silenciosamente
+        const nuevasVistas = (data.vistas || 0) + 1;
+        await supabase.from('vehiculos').update({ vistas: nuevasVistas }).eq('id', id);
+      }
     }
     cargar();
   }, [id]);
@@ -25,12 +31,10 @@ export default function DetalleAuto() {
 
   const mensajeWhatsApp = `Hola Maxi. Ya leí toda la ficha técnica en la web y estoy interesado en agendar una cita para ver/comprar el ${auto.titulo} (Lote ${auto.numero_lote}). ¿Qué horarios tenés disponibles?`;
 
-  // Determinamos qué fotos mostrar: las reales o una de relleno si no cargó ninguna
   const fotosAMostrar = auto.fotos && auto.fotos.length > 0 
     ? auto.fotos 
-    : ['https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1000']; // Foto genérica por defecto
+    : ['https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1000']; 
 
-  // Extraemos el ID del video de YouTube de la URL que pegó Maxi
   const getYouTubeId = (url: string) => {
     if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -50,16 +54,15 @@ export default function DetalleAuto() {
 
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
+        {/* COLUMNA IZQUIERDA */}
         <div className="lg:col-span-2 space-y-6">
           <div className="space-y-6">
             
-            {/* Carrusel Dinámico */}
             <div className="space-y-3">
               <div className="w-full aspect-video bg-gray-100 rounded-[2rem] overflow-hidden shadow-lg border border-gray-200 relative">
                 <img src={fotosAMostrar[fotoActiva]} alt="Vista del vehículo" className="w-full h-full object-cover" />
               </div>
               
-              {/* Solo mostramos miniaturas si hay más de una foto */}
               {fotosAMostrar.length > 1 && (
                 <div className="grid grid-cols-4 md:grid-cols-5 gap-3">
                   {fotosAMostrar.map((foto: string, index: number) => (
@@ -77,7 +80,6 @@ export default function DetalleAuto() {
               )}
             </div>
 
-            {/* Video Dinámico de YouTube */}
             {youtubeId && (
               <div className="mt-8">
                 <h3 className="text-xs font-black mb-4 uppercase tracking-[0.2em] text-gray-400 border-b pb-2 flex items-center gap-2">
@@ -85,8 +87,7 @@ export default function DetalleAuto() {
                 </h3>
                 <div className="w-full aspect-video rounded-[2rem] overflow-hidden shadow-lg relative border border-gray-200 bg-black">
                   <iframe 
-                    width="100%" 
-                    height="100%" 
+                    width="100%" height="100%" 
                     src={`https://www.youtube.com/embed/${youtubeId}`} 
                     title="YouTube video player" 
                     frameBorder="0" 
@@ -99,7 +100,6 @@ export default function DetalleAuto() {
             )}
           </div>
 
-          {/* ... Todo el resto de la página (Ficha, Documentación, Precio) se mantiene idéntico ... */}
           <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm mt-8">
             <h3 className="text-sm font-black mb-6 uppercase tracking-[0.2em] text-gray-400 border-b pb-2">Descripción Técnica Completa</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
@@ -145,40 +145,63 @@ export default function DetalleAuto() {
           </div>
         </div>
 
+        {/* COLUMNA DERECHA (Con lógica de Vendido y Vistas) */}
         <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-8 h-fit">
           <div className="bg-white p-8 rounded-[2.5rem] border border-gray-200 shadow-2xl">
+            
             <div className="mb-6">
-              <div className={`inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-4 ${auto.tipo_publicacion === 'Propio' ? 'bg-black text-white' : 'bg-yellow-500 text-black'}`}>
-                {auto.tipo_publicacion === 'Propio' ? 'Stock Directo Maxi' : 'Oportunidad de la Red'}
+              <div className={`inline-block px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 shadow-sm ${
+                auto.es_sold ? 'bg-red-600 text-white animate-pulse' : auto.tipo_publicacion === 'Propio' ? 'bg-black text-white' : 'bg-yellow-500 text-black'
+              }`}>
+                {auto.es_sold ? '🚫 UNIDAD VENDIDA' : auto.tipo_publicacion === 'Propio' ? 'Stock Directo Maxi' : 'Oportunidad de la Red'}
               </div>
               <h1 className="text-2xl font-black uppercase leading-tight mb-1">{auto.titulo}</h1>
-              <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Lote {auto.numero_lote} | {auto.tipo_tramite}</p>
-            </div>
-
-            <div className="bg-gray-50 p-6 rounded-[1.5rem] mb-6 border border-gray-100 text-center">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Precio Fijo Contado</p>
-                <p className="text-4xl font-black text-green-600">${auto.precio_venta.toLocaleString()}</p>
-            </div>
-
-            <div className="bg-yellow-50 p-4 rounded-2xl border border-yellow-200 mb-6">
-                <div className="flex items-start">
-                    <AlertTriangle className="text-yellow-600 mr-2 shrink-0 mt-0.5" size={16} />
-                    <p className="text-[10px] font-bold text-yellow-800 uppercase tracking-wide leading-relaxed">
-                        Toda la información técnica y estado de papeles se encuentra detallada en esta página. 
-                        <br/><br/><span className="font-black text-black">Por favor, contactar únicamente para agendar una visita o concretar la compra.</span>
-                    </p>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Lote {auto.numero_lote} | {auto.tipo_tramite}</p>
+                <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-gray-400 bg-gray-100 px-2 py-1 rounded-md">
+                  <Eye size={12} /> {auto.vistas || 0} vistas
                 </div>
+              </div>
             </div>
 
-            <a 
-              href={`https://wa.me/5491111111111?text=${encodeURIComponent(mensajeWhatsApp)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center space-x-2 w-full bg-black text-white font-black py-5 rounded-2xl shadow-xl hover:bg-gray-800 transition-all uppercase text-[11px] tracking-widest active:scale-95"
-            >
-              <CalendarDays size={20} className="text-yellow-500" /> 
-              <span>Agendar Cita por WhatsApp</span>
-            </a>
+            <div className="bg-gray-50 p-6 rounded-[1.5rem] mb-6 border border-gray-100 text-center relative overflow-hidden">
+                {auto.es_sold && (
+                  <div className="absolute inset-0 bg-red-600/10 backdrop-blur-[1px] flex items-center justify-center rotate-12 scale-110 border-2 border-dashed border-red-600 m-2 rounded-xl">
+                    <span className="text-red-700 font-black tracking-widest text-lg uppercase">VENDIDO</span>
+                  </div>
+                )}
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Precio Fijo Contado</p>
+                <p className={`text-4xl font-black ${auto.es_sold ? 'text-gray-400 line-through' : 'text-green-600'}`}>${auto.precio_venta.toLocaleString()}</p>
+            </div>
+
+            {auto.es_sold ? (
+              <div className="bg-gray-100 p-4 rounded-2xl border text-center font-black uppercase text-[10px] tracking-wide text-gray-500 leading-relaxed">
+                Esta unidad ya fue reservada o retirada del stock. <br/> Te invitamos a mirar el resto de las ofertas vigentes.
+              </div>
+            ) : (
+              <>
+                <div className="bg-yellow-50 p-4 rounded-2xl border border-yellow-200 mb-6">
+                    <div className="flex items-start">
+                        <AlertTriangle className="text-yellow-600 mr-2 shrink-0 mt-0.5" size={16} />
+                        <p className="text-[10px] font-bold text-yellow-800 uppercase tracking-wide leading-relaxed">
+                            Toda la información técnica y estado de papeles se encuentra detallada en esta página. 
+                            <br/><br/><span className="font-black text-black">Por favor, contactar únicamente para agendar una visita o concretar la compra.</span>
+                        </p>
+                    </div>
+                </div>
+
+                <a 
+                  href={`https://wa.me/5491155819975?text=${encodeURIComponent(mensajeWhatsApp)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center space-x-2 w-full bg-black text-white font-black py-5 rounded-2xl shadow-xl hover:bg-gray-800 transition-all uppercase text-[11px] tracking-widest active:scale-95"
+                >
+                  <CalendarDays size={20} className="text-yellow-500" /> 
+                  <span>Agendar Cita por WhatsApp</span>
+                </a>
+              </>
+            )}
+
           </div>
         </div>
 
