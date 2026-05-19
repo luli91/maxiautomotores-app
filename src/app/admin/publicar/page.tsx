@@ -3,7 +3,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { Car, ClipboardCheck, Tag, Layers, CheckCircle2, AlertCircle, Camera, Video, X, PackagePlus } from 'lucide-react';
+import { Car, ClipboardCheck, Layers, CheckCircle2, AlertCircle, Camera, Video, X, PackagePlus, Wrench } from 'lucide-react';
+
+const MARCAS_AUTOS = [
+  "Audi", "BMW", "Chery", "Chevrolet", "Citroën", "Fiat", "Ford", "Honda", 
+  "Hyundai", "Jeep", "Kia", "Mercedes Benz", "Nissan", "Peugeot", "Renault", 
+  "Suzuki", "Toyota", "Volkswagen", "Otra"
+];
 
 export default function PublicarPage() {
   const router = useRouter();
@@ -58,6 +64,7 @@ export default function PublicarPage() {
     }
 
     const datos = {
+      marca: formData.get('marca'), // NUEVO CAMPO GUARDADO
       titulo: formData.get('titulo'),
       numero_lote: proximoLote,
       tipo_publicacion: formData.get('tipo_publicacion'),
@@ -68,7 +75,6 @@ export default function PublicarPage() {
       ubicacion: formData.get('ubicacion'),
       radicacion: formData.get('radicacion'),
       tipo_tramite: formData.get('tramite'),
-      estado_detalle: formData.get('estado_detalle'),
       precio_venta: Number(formData.get('precio')),
       observaciones: formData.get('observaciones'),
       video_youtube: formData.get('video_youtube') || null,
@@ -78,7 +84,14 @@ export default function PublicarPage() {
       informe_dominio: formData.get('informe_dominio') === 'on',
       libre_deuda: formData.get('libre_deuda') === 'on',
       activo: true,
-      es_sold: false
+      es_sold: false,
+      
+      // CAMPOS TALLERISTAS
+      tipo_dano: formData.get('tipo_dano'),
+      motor_arranca: formData.get('motor_arranca'),
+      vehiculo_camina: formData.get('vehiculo_camina') === 'on',
+      airbags_sanos: formData.get('airbags_sanos') === 'on',
+      chasis_afectado: formData.get('chasis_afectado') === 'on',
     };
 
     const { error } = await supabase.from('vehiculos').insert([datos]);
@@ -114,6 +127,7 @@ export default function PublicarPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="p-8 space-y-8 text-black">
+          {/* FOTOS Y VIDEO */}
           <section className="space-y-4">
             <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest"><Camera className="inline mr-2" size={14} /> Material Visual</h3>
             <div className="bg-gray-50 p-6 rounded-3xl border border-dashed border-gray-300">
@@ -150,19 +164,112 @@ export default function PublicarPage() {
             </div>
           </section>
 
+          {/* FICHA TÉCNICA GENERAL */}
           <section className="space-y-4">
-            <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest"><Car className="inline mr-2" size={14} /> Ficha Técnica</h3>
+            <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest"><Car className="inline mr-2" size={14} /> Ficha Técnica Base</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-3"><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Título / Modelo</label><input name="titulo" required className="w-full p-3 border rounded-xl font-black bg-white outline-none" /></div>
-              <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Año</label><input name="año" type="number" required className="w-full p-3 border rounded-xl bg-white outline-none" /></div>
-              <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Kilómetros</label><input name="kilometraje" className="w-full p-3 border rounded-xl bg-white outline-none" /></div>
-              <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Combustible</label><input name="combustible" className="w-full p-3 border rounded-xl bg-white outline-none" /></div>
-              <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Caja</label><input name="caja_cambios" className="w-full p-3 border rounded-xl bg-white outline-none" /></div>
+              
+              {/* ACÁ ESTÁ EL NUEVO SELECT DE MARCAS */}
+              <div className="md:col-span-1">
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Marca</label>
+                <select name="marca" required className="w-full p-3 border rounded-xl font-black bg-white outline-none">
+                  <option value="">Seleccionar...</option>
+                  {MARCAS_AUTOS.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Modelo y Versión</label>
+                <input name="titulo" required placeholder="Ej: Gol Trend 1.6 MSI" className="w-full p-3 border rounded-xl font-black bg-white outline-none" />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Año</label>
+                <select name="año" required className="w-full p-3 border rounded-xl bg-white outline-none font-bold text-black">
+                    {Array.from({ length: 35 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                    <option key={year} value={year}>{year}</option>
+                    ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Kilómetros</label>
+                <input name="kilometraje" type="number" placeholder="Ej: 150000" className="w-full p-3 border rounded-xl bg-white outline-none" />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Combustible</label>
+                <select name="combustible" className="w-full p-3 border rounded-xl font-bold bg-white outline-none">
+                  <option value="Nafta">Nafta</option><option value="Diesel">Diésel</option><option value="GNC">GNC</option><option value="Hibrido">Híbrido</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Caja</label>
+                <select name="caja_cambios" className="w-full p-3 border rounded-xl font-bold bg-white outline-none">
+                  <option value="Manual">Manual</option><option value="Automatica">Automática</option>
+                </select>
+              </div>
               <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Ubicación</label><input name="ubicacion" className="w-full p-3 border rounded-xl bg-white outline-none" /></div>
               <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Radicación</label><input name="radicacion" className="w-full p-3 border rounded-xl bg-white outline-none" /></div>
             </div>
           </section>
 
+          {/* NUEVA SECCIÓN: ESTADO PARA TALLERISTAS */}
+          <section className="space-y-4">
+            <h3 className="text-xs font-black uppercase text-blue-600 tracking-widest flex items-center bg-blue-50 p-2 rounded-lg w-fit">
+              <Wrench className="inline mr-2" size={14} /> Estado de Componentes Clave (Talleristas)
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-3xl border border-gray-200">
+              
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-500 ml-1">Categoría del Daño Principal</label>
+                <select name="tipo_dano" className="w-full p-3 border rounded-xl font-black text-black outline-none bg-white">
+                  <option value="Chapa y Pintura">Chapa y Pintura (Toques estéticos)</option>
+                  <option value="Mecánica">Problemas de Mecánica</option>
+                  <option value="Electrónica">Fallas Electrónicas</option>
+                  <option value="Choque Fuerte / Siniestro">Choque Fuerte / Siniestro</option>
+                  <option value="Volcado">Volcado</option>
+                  <option value="Para Repuestos / Desguace">Para Repuestos / Desguace</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-500 ml-1">¿El motor arranca?</label>
+                <select name="motor_arranca" className="w-full p-3 border rounded-xl font-black text-black outline-none bg-white">
+                  <option value="Sí">Sí, arranca perfecto</option>
+                  <option value="No">No arranca</option>
+                  <option value="Gira pero no arranca">El motor gira pero no llega a arrancar</option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+                <label className="flex items-center gap-3 bg-white p-4 rounded-2xl border cursor-pointer hover:border-black transition-colors">
+                  <input type="checkbox" name="vehiculo_camina" className="w-5 h-5 accent-black" /> 
+                  <div>
+                    <p className="text-xs font-black uppercase">El auto camina</p>
+                    <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">Se puede mover por sus medios</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 bg-white p-4 rounded-2xl border cursor-pointer hover:border-black transition-colors">
+                  <input type="checkbox" name="airbags_sanos" defaultChecked className="w-5 h-5 accent-black" /> 
+                  <div>
+                    <p className="text-xs font-black uppercase">Airbags Sanos</p>
+                    <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">No fueron detonados</p>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 bg-white p-4 rounded-2xl border cursor-pointer hover:border-black transition-colors">
+                  <input type="checkbox" name="chasis_afectado" className="w-5 h-5 accent-black" /> 
+                  <div>
+                    <p className="text-xs font-black uppercase text-red-600">Chasis Afectado</p>
+                    <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">Daño estructural</p>
+                  </div>
+                </label>
+              </div>
+
+            </div>
+          </section>
+
+          {/* LEGAL Y PRECIO */}
           <section className="space-y-4">
             <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest"><ClipboardCheck className="inline mr-2" size={14} /> Legal y Valor</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -172,13 +279,7 @@ export default function PublicarPage() {
                   <option value="08 Firmado - Listo para transferir">08 Firmado - Listo para transferir</option><option value="Transferencia Directa">Transferencia Directa</option><option value="08 en trámite">08 en trámite</option>
                 </select>
               </div>
-              <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Estado Visual</label>
-                <select name="estado_detalle" className="w-full p-3 border rounded-xl font-bold bg-white outline-none">
-                  <option value="Funcionando (Sin detalles)">Funcionando (Sin detalles)</option><option value="Funcionando (Detalles estéticos)">Funcionando (Detalles estéticos)</option><option value="Chocado (Siniestro)">Chocado (Siniestro)</option>
-                </select>
-              </div>
-              <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-2 bg-gray-50 p-4 rounded-2xl border">
+              <div className="grid grid-cols-2 gap-2 bg-gray-50 p-4 rounded-2xl border">
                 {['vtv', 'verificacion_policial', 'informe_dominio', 'libre_deuda'].map(item => (
                   <label key={item} className="flex items-center text-[10px] font-black uppercase cursor-pointer"><input type="checkbox" name={item} className="mr-2 w-4 h-4 accent-black" /> {item.replace('_', ' ')}</label>
                 ))}
@@ -188,8 +289,8 @@ export default function PublicarPage() {
                   <input name="precio" type="number" required className="w-full p-4 border-2 border-green-100 rounded-2xl bg-white text-black font-black text-lg outline-none focus:border-green-500" />
               </div>
               <div className="md:col-span-2">
-                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Observaciones</label>
-                <textarea name="observaciones" rows={2} className="w-full p-3 border rounded-xl bg-white outline-none focus:border-yellow-500"></textarea>
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Observaciones / Faltantes para el taller</label>
+                <textarea name="observaciones" rows={3} placeholder="Detallá piezas faltantes, golpes ocultos, o aclaraciones para el mecánico..." className="w-full p-3 border rounded-xl bg-white outline-none focus:border-yellow-500"></textarea>
               </div>
             </div>
           </section>

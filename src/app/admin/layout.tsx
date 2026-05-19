@@ -40,15 +40,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <aside className={`fixed top-0 left-0 h-screen w-64 bg-black text-white p-8 flex flex-col z-40 transform transition-transform duration-300 ${menuAbierto ? "translate-x-0" : "-translate-x-full"} md:relative md:translate-x-0 shadow-2xl`}>
         <div className="mb-12 flex flex-col items-center text-center mt-8 md:mt-0">
-          <div className="bg-yellow-500 text-black p-3 rounded-2xl mb-4">
-            <CarFront size={32} />
-          </div>
+          <img 
+            src="/logo.jpg" 
+            alt="Maxi Automotores Logo" 
+            className="h-16 w-auto object-contain mb-4 drop-shadow-md" 
+          />
+          
           <h2 className="text-xl font-black tracking-tight leading-none uppercase">
             MAXI<span className="text-yellow-500 font-black">ADMIN</span>
           </h2>
-          <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-widest font-bold">Gestión de Agencia</p>
+          <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-widest font-bold">
+            Gestión de Agencia
+          </p>
         </div>
-
         <nav className="flex-1 space-y-3">
           {menuItems.map((item) => (
             <Link 

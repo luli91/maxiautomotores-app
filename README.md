@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚗 MaxiAutomotores - Ecosistema Digital Fierrero
 
-## Getting Started
+Plataforma integral de gestión, comercialización e intermediación de vehículos de oportunidad, salvamentos y proyectos para talleristas. Desarrollada para modernizar el flujo de trabajo de una agencia automotor, conectando stock propio con "Oportunidades de la Red".
 
-First, run the development server:
+## 🚀 Características Principales
 
-```bash
+### 🏪 Salón Digital (Público)
+- **Filtros Avanzados para Talleristas:** Búsqueda técnica por estado de chasis, despliegue de airbags, arranque de motor, daños específicos y VTV.
+- **Catálogo Inteligente:** División automática entre "Stock Directo" y "Oportunidades de la Red".
+- **Favoritos (Garaje Virtual):** Guardado de proyectos en tiempo real con Modal de Login sin fricción.
+- **SEO & WhatsApp:** Fichas de vehículos optimizadas con OpenGraph para previsualizaciones premium al compartir enlaces por WhatsApp.
+
+### 👤 Perfil de Usuario (Clientes)
+- **Dashboard Personal:** Edición rápida de datos comerciales (WhatsApp, Empresa/Taller).
+- **Gestor de Favoritos:** Presupuestación visual de autos de interés.
+- **Intermediación (Broker):** Call-To-Action directo para ofrecer vehículos propios y publicarlos en la red de la agencia.
+
+### ⚙️ Panel de Control (Administrador)
+- **Métricas en Tiempo Real:** Cálculo de facturación mensual, ingresos de unidades, y tiempo récord de ventas.
+- **Rankings Inteligentes:** Marcas más vendidas, Modelos exactos más buscados y distribución de stock por tipo de daño.
+- **Gestión Física (QR):** Generador de cartelería PDF en blanco y negro con Código QR para pegar en el parabrisas de los autos físicos.
+- **Exportación:** Descarga del inventario en formato PDF para compartir con la red de revendedores.
+- **Control de Inventario:** CRUD completo con carga masiva de fotos a la nube y control estricto de nomenclaturas.
+
+## 🛠️ Stack Tecnológico
+
+- **Frontend:** Next.js (React) + TypeScript
+- **Estilos:** Tailwind CSS
+- **Iconografía:** Lucide React
+- **Backend / Base de Datos:** Supabase (PostgreSQL)
+- **Autenticación:** Supabase Auth
+- **Almacenamiento:** Supabase Storage (Imágenes de vehículos)
+
+## 💻 Instalación y Uso Local
+
+1. Clonar el repositorio:
+   ```bash
+   git clone [URL_DEL_REPO]
+
+Instalar dependencias:
+
+Bash
+npm install
+Configurar variables de entorno (.env.local):
+
+Fragmento de código
+NEXT_PUBLIC_SUPABASE_URL=tu_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_supabase_anon_key
+
+Iniciar el servidor de desarrollo:
+
+Bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Diseñado y desarrollado por Cynthia Medina ♡
