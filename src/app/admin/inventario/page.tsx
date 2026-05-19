@@ -171,7 +171,7 @@ export default function InventarioPage() {
             
             {/* EL CARTEL (Lo que se va a imprimir) */}
             <div id="cartel-imprimible" className="w-full border-4 border-black p-8 text-center bg-white flex flex-col items-center rounded-xl shadow-lg">
-              <img src="/logo.jpg" alt="Logo" className="h-16 object-contain mb-4 grayscale" />
+              <img src="/logo.png" alt="Logo" className="h-16 object-contain mb-4 grayscale" />
               
               <div className="bg-black text-white px-4 py-1 uppercase font-black text-xs tracking-widest mb-4 rounded-full">
                 Escanear para ver detalles

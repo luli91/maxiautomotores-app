@@ -64,7 +64,7 @@ export default function PublicarPage() {
     }
 
     const datos = {
-      marca: formData.get('marca'), // NUEVO CAMPO GUARDADO
+      marca: formData.get('marca'),
       titulo: formData.get('titulo'),
       numero_lote: proximoLote,
       tipo_publicacion: formData.get('tipo_publicacion'),
@@ -85,8 +85,6 @@ export default function PublicarPage() {
       libre_deuda: formData.get('libre_deuda') === 'on',
       activo: true,
       es_sold: false,
-      
-      // CAMPOS TALLERISTAS
       tipo_dano: formData.get('tipo_dano'),
       motor_arranca: formData.get('motor_arranca'),
       vehiculo_camina: formData.get('vehiculo_camina') === 'on',
@@ -94,14 +92,33 @@ export default function PublicarPage() {
       chasis_afectado: formData.get('chasis_afectado') === 'on',
     };
 
-    const { error } = await supabase.from('vehiculos').insert([datos]);
+    const { data: autoInsertado, error } = await supabase
+      .from('vehiculos')
+      .insert([datos])
+      .select();
 
     if (error) {
       setMensajeStatus({ tipo: 'error', texto: error.message });
       setLoading(false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      setMensajeStatus({ tipo: 'exito', texto: '¡Vehículo publicado con éxito!' });
+      try {
+        await supabase.functions.invoke('enviar-alerta-auto', {
+          body: { 
+            titulo: datos.titulo, 
+            auto_id: autoInsertado[0].id,
+            marca: datos.marca,
+            foto_url: urlsFotosFinales.length > 0 ? urlsFotosFinales[0] : 'https://via.placeholder.com/600x400?text=Sin+Foto',
+            precio: datos.precio_venta
+          
+          },
+        });
+        console.log("Notificaciones disparadas.");
+      } catch (err) {
+        console.error("Error disparando alertas:", err);
+      }
+
+      setMensajeStatus({ tipo: 'exito', texto: '¡Vehículo publicado y notificaciones enviadas!' });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setTimeout(() => router.push('/admin/inventario'), 1500); 
     }

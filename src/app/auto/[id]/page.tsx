@@ -123,8 +123,13 @@ export default function DetalleAuto() {
             
             <div className="space-y-3">
               <div className="w-full aspect-video bg-gray-200 rounded-[2rem] overflow-hidden shadow-lg border border-gray-200 relative group">
-                <img src={fotosAMostrar[fotoActiva]} alt="Vista del vehículo" className="w-full h-full object-cover" />
-                
+                <div className="relative group">
+                  <img src={fotosAMostrar[fotoActiva]} alt="Vista del vehículo" className="w-full h-full object-cover" />
+                  {/* MARCA DE AGUA CSS */}
+                  <div className="absolute top-4 left-4 opacity-50 pointer-events-none">
+                    <img src="/logo.png" className="h-10 w-auto filter drop-shadow-md brightness-0 invert" />
+                  </div>
+                </div>                
                 <button 
                   onClick={toggleFavorito} 
                   className={`absolute top-6 right-6 p-4 rounded-full shadow-2xl transition-all z-10 backdrop-blur-md ${esFavorito ? 'bg-red-50 text-red-500 hover:bg-white' : 'bg-black/40 text-white hover:bg-red-500 hover:text-white'}`}

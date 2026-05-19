@@ -31,6 +31,13 @@ Plataforma integral de gestión, comercialización e intermediación de vehícul
 - **Autenticación:** Supabase Auth
 - **Almacenamiento:** Supabase Storage (Imágenes de vehículos)
 
+## Sistema de Notificaciones
+El sistema cuenta con un motor de notificaciones automatizado que alerta vía email cada vez que se publica un nuevo vehículo:
+- **Backend:** Edge Functions de Supabase.
+- **Provider:** Resend.
+- **Flujo:** Al guardar un vehículo, el frontend invoca la función `enviar-alerta-auto`, que procesa los datos, busca suscriptores activos y envía un email con diseño personalizado.
+- **Estado:** Configurado en modo prueba (filtrado por email autorizado).
+
 ## 💻 Instalación y Uso Local
 
 1. Clonar el repositorio:

@@ -80,7 +80,7 @@ export default function LoginPage() {
           <div className="relative z-10">
             {/* LOGO EN VEZ DE ICONO */}
             <Link href="/" className="inline-block mb-8 hover:scale-105 transition-transform bg-white/10 p-4 rounded-3xl backdrop-blur-md border border-white/10">
-              <img src="/logo.jpg" alt="Maxi Automotores" className="h-16 w-auto object-contain drop-shadow-lg" />
+              <img src="/logo.png" alt="Maxi Automotores" className="h-16 w-auto object-contain drop-shadow-lg" />
             </Link>
             <h1 className="text-4xl font-black uppercase tracking-tighter leading-none mb-4">
               MAXI<br/><span className="text-yellow-500">AUTOMOTORES</span>
@@ -100,7 +100,7 @@ export default function LoginPage() {
           
           {/* HEADER MOBILE CON LOGO */}
           <div className="md:hidden flex items-center justify-center mb-8 border-b pb-6">
-            <img src="/logo.jpg" alt="Maxi Automotores" className="h-14 w-auto object-contain drop-shadow-md" />
+            <img src="/logo.png" alt="Maxi Automotores" className="h-14 w-auto object-contain drop-shadow-md" />
           </div>
 
           <div className="mb-10">

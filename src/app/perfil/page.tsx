@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { User, LogOut, Contact2, Heart, Trash2, Car, Eye, Building, Wrench, ChevronRight, Edit3, Save, KeyRound, CheckCircle2 } from 'lucide-react';
+import { User, LogOut, Contact2, Heart, Trash2, Car, Eye, Building, Wrench, ChevronRight, Edit3, Save, KeyRound, CheckCircle2, Handshake, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PerfilPage() {
@@ -86,9 +86,17 @@ export default function PerfilPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center font-black text-black tracking-widest uppercase animate-pulse">Cargando tu garaje...</div>;
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 md:p-8 text-black font-sans pb-20">
+    <main className="min-h-screen bg-gray-50 text-black font-sans pb-20 relative">
       
-      <div className="max-w-5xl mx-auto space-y-8">
+      {/* NAVEGACIÓN SUPERIOR (Para volver a la Home) */}
+      <nav className="w-full p-6 flex justify-between items-center bg-black/50 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200 shadow-sm">
+        <Link href="/" className="inline-flex items-center text-gray-600 hover:text-black font-bold uppercase text-[10px] tracking-widest bg-white py-2 px-4 rounded-full shadow-sm border">
+          <ChevronLeft size={16} className="mr-1" /> Volver al Catálogo
+        </Link>
+        <img src="/logo.png" alt="Maxi Automotores" className="h-8 md:h-10 w-auto object-contain" />
+      </nav>
+
+      <div className="max-w-5xl mx-auto space-y-8 p-4 md:p-8 mt-4">
         
         {/* ENCABEZADO DEL PERFIL */}
         <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden">
@@ -185,15 +193,15 @@ export default function PerfilPage() {
 
             {/* BANNER COMERCIAL (VENDER AUTO EN LA RED) */}
             <div className="bg-gradient-to-br from-black to-zinc-900 rounded-3xl p-6 text-white flex flex-col justify-center relative overflow-hidden shadow-xl border border-zinc-800">
-               <Car size={100} className="absolute -right-8 -bottom-8 text-white/5" />
-               <h4 className="text-yellow-500 font-black uppercase tracking-tighter text-lg mb-2 relative z-10">Vendé tu auto en nuestra Red</h4>
-               <p className="text-xs text-gray-300 font-medium mb-6 relative z-10">¿Tenés un auto chocado, volcado, con deudas o sin funcionar? Lo publicamos en nuestra sección de Oportunidades para que lo vendas rápido a nuestra cartera de clientes.</p>
+               <Handshake size={100} className="absolute -right-8 -bottom-8 text-white/5" />
+               <h4 className="text-yellow-500 font-black uppercase tracking-tighter text-lg mb-2 relative z-10">Vendé tu auto rápido</h4>
+               <p className="text-xs text-gray-300 font-medium mb-6 relative z-10">¿Tenés un auto chocado, volcado, o sin funcionar? Lo evaluamos en el acto. Si no lo compramos, lo publicamos en la Red.</p>
                <a 
-                  href={`https://wa.me/5491155819975?text=Hola%20Maxi,%20soy%20${perfil?.nombre_completo}.%20Tengo%20un%20auto%20y%20me%20gustaría%20publicarlo%20en%20las%20Oportunidades%20de%20la%20Red.`}
+                  href={`https://wa.me/5491155819975?text=Hola%20Maxi,%20soy%20${perfil?.nombre_completo}.%20Tengo%20un%20auto%20para%20vender%20o%20publicar%20en%20las%20Oportunidades%20de%20la%20Red.`}
                   target="_blank" rel="noreferrer"
                   className="bg-yellow-500 text-black px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest text-center hover:bg-yellow-400 transition-colors relative z-10 shadow-lg"
                >
-                 Ofrecer mi auto
+                 Ofrecer mi unidad
                </a>
             </div>
 
