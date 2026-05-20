@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { CarFront, LayoutDashboard, Globe, LogOut, Menu, X, Car, PackagePlus, Wallet } from 'lucide-react';
+import { LayoutDashboard, Globe, LogOut, Menu, X, Car, PackagePlus, Wallet } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();

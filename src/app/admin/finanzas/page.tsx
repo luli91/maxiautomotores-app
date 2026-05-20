@@ -105,34 +105,33 @@ export default function FinanzasPage() {
       </div>
 
       {/* GRÁFICO EVOLUTIVO DE 12 MESES */}
-      <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-gray-100">
-        <h2 className="text-xl font-black uppercase tracking-tighter flex items-center gap-2 mb-8">
+      <div className="bg-white p-5 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-xl border border-gray-100 w-full overflow-hidden">
+        <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter flex items-center gap-2 mb-6">
           <BarChart4 className="text-yellow-500" size={24} /> Evolución Anual de Ingresos
         </h2>
         
-        {/* Contenedor del Gráfico de Barras CSS */}
-        <div className="h-64 flex items-end justify-between gap-2 md:gap-4 mt-8 pt-4 border-t border-gray-50">
+        {/* Gráfico responsivo: sin scroll horizontal, se comprime automáticamente */}
+        <div className="w-full h-48 md:h-64 flex items-end justify-between gap-1 md:gap-3 mt-4 pt-4 border-t border-gray-50">
           {historialMeses.map((mes, index) => {
             const porcentaje = Math.round((mes.ingresos / maxIngreso) * 100);
             
             return (
-              <div key={index} className="flex flex-col items-center flex-1 group">
-                {/* Tooltip Hover */}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -mt-16 bg-black text-white p-2 rounded-xl text-center pointer-events-none z-10 shadow-lg">
-                  <p className="text-xs font-black text-green-400">${mes.ingresos.toLocaleString()}</p>
-                  <p className="text-[9px] uppercase tracking-widest font-bold text-gray-400">{mes.autos} Autos</p>
+              <div key={index} className="flex flex-col items-center flex-1 group relative h-full justify-end">
+                {/* Tooltip Hover (Solo visible en pantallas grandes o al tocar) */}
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-10 bg-black text-white p-2 rounded-lg text-center pointer-events-none z-10 shadow-lg hidden md:block">
+                  <p className="text-[10px] font-black text-green-400">${mes.ingresos.toLocaleString()}</p>
                 </div>
                 
                 {/* Barra de progreso */}
-                <div className="w-full relative h-48 bg-gray-50 rounded-t-xl overflow-hidden flex items-end">
+                <div className="w-full relative h-32 md:h-48 bg-gray-50 rounded-t-sm md:rounded-t-xl overflow-hidden flex items-end">
                   <div 
-                    className="w-full bg-gradient-to-t from-green-600 to-green-400 rounded-t-xl transition-all duration-1000 group-hover:from-green-500 group-hover:to-green-300"
+                    className="w-full bg-gradient-to-t from-green-600 to-green-400 rounded-t-sm md:rounded-t-xl transition-all duration-1000 group-hover:from-green-500 group-hover:to-green-300"
                     style={{ height: `${porcentaje}%` }}
                   ></div>
                 </div>
                 
-                {/* Etiqueta del Mes */}
-                <span className="text-[9px] md:text-xs font-bold text-gray-400 uppercase mt-4 text-center">
+                {/* Etiqueta del Mes: más chica en celu para que entren los 12 meses */}
+                <span className="text-[7px] md:text-xs font-bold text-gray-400 uppercase mt-2 text-center break-all w-full">
                   {(mes as any).label}
                 </span>
               </div>
@@ -149,7 +148,32 @@ export default function FinanzasPage() {
           </h2>
         </div>
         
-        <div className="overflow-x-auto p-4 md:p-8">
+        {/* VISTA MÓVIL (Lista estilo App) */}
+        <div className="md:hidden p-4 space-y-3 bg-gray-100">
+          {ventas.map((v) => (
+            <div key={v.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-green-500" />
+                  <p className="font-black text-black uppercase text-xs leading-tight">{v.titulo}</p>
+                </div>
+                <p className="font-black text-green-600 text-sm">${v.precio_venta.toLocaleString()}</p>
+              </div>
+              <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-50">
+                <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                  Lote {v.numero_lote} • <CalendarDays className="inline w-3 h-3 mb-0.5" /> {v.fecha_venta ? new Date(v.fecha_venta).toLocaleDateString('es-AR') : new Date(v.created_at).toLocaleDateString('es-AR')}
+                </p>
+                <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest truncate max-w-[100px]">
+                  {v.tipo_tramite}
+                </span>
+              </div>
+            </div>
+          ))}
+          {ventas.length === 0 && <p className="text-center py-6 text-gray-400 font-bold text-xs uppercase">No hay ventas registradas.</p>}
+        </div>
+
+        {/* VISTA DESKTOP (Tabla Normal) */}
+        <div className="hidden md:block p-8">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead>
               <tr className="text-[10px] font-black uppercase text-gray-400 tracking-widest border-b-2 border-gray-100">
@@ -163,9 +187,7 @@ export default function FinanzasPage() {
                 <tr key={v.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="py-5 px-2">
                     <div className="flex items-center gap-4">
-                      <div className="bg-green-100 text-green-700 p-3 rounded-xl shrink-0">
-                        <CheckCircle2 size={20} />
-                      </div>
+                      <div className="bg-green-100 text-green-700 p-3 rounded-xl shrink-0"><CheckCircle2 size={20} /></div>
                       <div>
                         <p className="font-black text-black uppercase leading-tight">{v.titulo}</p>
                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">
@@ -174,24 +196,10 @@ export default function FinanzasPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="py-5 px-2">
-                    <span className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest">
-                      {v.tipo_tramite}
-                    </span>
-                  </td>
-                  <td className="py-5 px-2 text-right font-black text-green-600 text-lg">
-                    ${v.precio_venta.toLocaleString()}
-                  </td>
+                  <td className="py-5 px-2"><span className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest">{v.tipo_tramite}</span></td>
+                  <td className="py-5 px-2 text-right font-black text-green-600 text-lg">${v.precio_venta.toLocaleString()}</td>
                 </tr>
               ))}
-              
-              {ventas.length === 0 && (
-                <tr>
-                  <td colSpan={3} className="text-center py-12 text-gray-400 font-bold uppercase tracking-widest text-xs">
-                    No hay ventas registradas todavía. <br/> ¡Pronto llegará la primera!
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>

@@ -107,56 +107,65 @@ export default function Home() {
         </Link>
       </nav>
 
-      <header className="bg-black text-white pt-40 pb-28 px-6 text-center relative overflow-hidden">
+      <header className="bg-black text-white pt-32 md:pt-40 pb-20 md:pb-28 px-4 md:px-6 text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
         <div className="relative z-10 max-w-5xl mx-auto">
-          <span className="inline-block bg-yellow-500 text-black px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-6">Compra, Venta e Intermediación Automotriz</span>
-          <h1 className="text-5xl md:text-8xl font-black tracking-tighter mb-6 leading-none uppercase">MAXI<span className="text-yellow-500">AUTOMOTORES</span></h1>
-          <p className="text-gray-300 font-bold text-base md:text-xl max-w-3xl mx-auto leading-relaxed">
+          <span className="inline-block bg-yellow-500 text-black px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest mb-4 md:mb-6">
+            Compra, Venta e Intermediación Automotriz
+          </span>
+          <h1 className="text-3xl sm:text-4xl md:text-7xl font-black tracking-tighter mb-4 md:mb-6 leading-none uppercase break-words">MAXI<span className="text-yellow-500">AUTOMOTORES</span></h1>
+          <p className="text-gray-300 font-bold text-xs md:text-lg max-w-3xl mx-auto leading-relaxed px-4">
           Compramos tu vehículo en cualquier estado y vendemos unidades con alto potencial de rentabilidad para talleristas.
           </p>
           
-          <div className="flex flex-wrap justify-center gap-4 mt-10">
-            <Link href="#publicar" className="bg-white text-black px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-gray-200 transition-all">Quiero vender mi auto</Link>
-            <Link href="#catalogo" className="bg-yellow-500 text-black px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-500/20">Ver stock para reparar</Link>
+          <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4 mt-8 md:mt-10 px-4">
+            <Link href="#publicar" className="w-full sm:w-auto bg-white text-black px-6 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest hover:bg-gray-200 transition-all">Quiero vender mi auto</Link>
+            <Link href="#catalogo" className="w-full sm:w-auto bg-yellow-500 text-black px-6 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-500/20">Ver stock para reparar</Link>
           </div>
         </div>
       </header>
 
-      <section className="max-w-7xl mx-auto px-6 -mt-12 relative z-20 mb-24 grid grid-cols-1 lg:grid-cols-2 gap-6" id="compramos">
-        <div className="bg-white p-8 md:p-12 rounded-[3rem] shadow-2xl border border-gray-100 flex flex-col justify-between overflow-hidden relative group">
+      <section className="max-w-7xl mx-auto px-4 md:px-6 -mt-8 md:-mt-12 relative z-20 mb-16 md:mb-24 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6" id="compramos">
+        
+        {/* TARJETA BLANCA: COMPRAMOS TU AUTO */}
+        <div className="bg-white p-6 md:p-12 rounded-[2rem] md:rounded-[3rem] shadow-2xl border border-gray-100 flex flex-col justify-between overflow-hidden relative group">
           <BadgeDollarSign size={180} className="absolute -right-10 -bottom-10 text-gray-50 group-hover:text-yellow-500/10 transition-colors" />
           <div className="relative z-10">
-            <h2 className="text-3xl md:text-4xl font-black uppercase leading-none mb-4">Compramos tu auto <span className="text-yellow-500 italic text-2xl md:text-3xl block mt-2">¡En el estado que esté!</span></h2>
-            <p className="text-gray-500 font-bold text-sm mb-8 max-w-sm">Chocados, volcados, sin funcionar y en buen estado. Tasación inmediata por WhatsApp y retiro en el día.</p>
-            <div className="space-y-3 mb-10 text-xs font-black uppercase text-gray-700">
-              <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-500" /> Pago contado efectivo</div>
-              <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-500" /> Retiro con grúa propia</div>
-              <div className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-500" /> Gestoría sin vueltas</div>
+            <h2 className="text-2xl md:text-4xl font-black uppercase leading-none mb-3 md:mb-4">Compramos tu auto <span className="text-yellow-500 italic text-xl md:text-3xl block mt-1 md:mt-2">¡En el estado que esté!</span></h2>
+            <p className="text-gray-500 font-bold text-xs md:text-sm mb-6 md:mb-8 max-w-sm">Chocados, volcados, sin funcionar y en buen estado. Tasación inmediata por WhatsApp y retiro en el día.</p>
+            <div className="space-y-2 md:space-y-3 mb-8 md:mb-10 text-[10px] md:text-xs font-black uppercase text-gray-700">
+              <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-green-500 md:w-4 md:h-4" /> Pago contado efectivo</div>
+              <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-green-500 md:w-4 md:h-4" /> Retiro con grúa propia</div>
+              <div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-green-500 md:w-4 md:h-4" /> Gestoría sin vueltas</div>
             </div>
           </div>
-          <a href="https://wa.me/5491155819975?text=Hola%20Maxi,%20quiero%20vender%20un%20vehiculo." target="_blank" rel="noreferrer" className="w-full bg-black text-white text-center py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gray-800 transition-all relative z-10">Cotizar mi unidad ahora</a>
+          <a href="https://wa.me/5491155819975?text=Hola%20Maxi,%20quiero%20vender%20un%20vehiculo." target="_blank" rel="noreferrer" className="w-full bg-black text-white text-center py-4 md:py-5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xs hover:bg-gray-800 transition-all relative z-10">Cotizar mi unidad ahora</a>
         </div>
 
-        <div className="bg-zinc-900 p-8 md:p-12 rounded-[3rem] shadow-2xl text-white flex flex-col justify-between overflow-hidden relative group" id="catalogo">
+        {/* TARJETA NEGRA: PROYECTO DE INVERSIÓN */}
+        <div className="bg-zinc-900 p-6 md:p-12 rounded-[2rem] md:rounded-[3rem] shadow-2xl text-white flex flex-col justify-between overflow-hidden relative group" id="catalogo">
           <Gavel size={180} className="absolute -right-10 -bottom-10 text-white/5 group-hover:text-white/10 transition-colors" />
           <div className="relative z-10">
-            <h2 className="text-3xl md:text-4xl font-black uppercase leading-none mb-4">Encontrá tu próximo <span className="text-yellow-500 italic text-2xl md:text-3xl block mt-2">Proyecto de Inversión</span></h2>
-            <p className="text-gray-400 font-bold text-sm mb-8 max-w-sm">Accedé a nuestro stock exclusivo de siniestrados y oportunidades de la red con papeles listos para transferir.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-              <select value={filtroDano} onChange={(e) => setFiltroDano(e.target.value)} className="bg-white/10 p-4 rounded-xl border border-white/20 text-white text-xs font-black uppercase outline-none cursor-pointer"><option value="Todos">Tipo de Daño</option>{danosDisponibles.map((d:any) => <option key={d} value={d} className="bg-black">{d}</option>)}</select>
-              <select value={filtroMarca} onChange={(e) => setFiltroMarca(e.target.value)} className="bg-white/10 p-4 rounded-xl border border-white/20 text-white text-xs font-black uppercase outline-none cursor-pointer"><option value="Todas">Marca</option>{marcasDisponibles.map(m => <option key={m as string} value={m as string} className="bg-black">{m}</option>)}</select>
+            <h2 className="text-2xl md:text-4xl font-black uppercase leading-none mb-3 md:mb-4">Encontrá tu próximo <span className="text-yellow-500 italic text-xl md:text-3xl block mt-1 md:mt-2">Proyecto de Inversión</span></h2>
+            <p className="text-gray-400 font-bold text-xs md:text-sm mb-6 md:mb-8 max-w-sm">Accedé a nuestro stock exclusivo de siniestrados y oportunidades de la red con papeles listos para transferir.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 mb-6 md:mb-8">
+              <select value={filtroDano} onChange={(e) => setFiltroDano(e.target.value)} className="bg-white/10 p-3 md:p-4 rounded-xl border border-white/20 text-white text-[10px] md:text-xs font-black uppercase outline-none cursor-pointer"><option value="Todos">Tipo de Daño</option>{danosDisponibles.map((d:any) => <option key={d} value={d} className="bg-black">{d}</option>)}</select>
+              <select value={filtroMarca} onChange={(e) => setFiltroMarca(e.target.value)} className="bg-white/10 p-3 md:p-4 rounded-xl border border-white/20 text-white text-[10px] md:text-xs font-black uppercase outline-none cursor-pointer"><option value="Todas">Marca</option>{marcasDisponibles.map(m => <option key={m as string} value={m as string} className="bg-black">{m}</option>)}</select>
             </div>
           </div>
-          <button onClick={() => { document.getElementById('grilla-autos')?.scrollIntoView({ behavior: 'smooth' }); }} className="w-full bg-yellow-500 text-black text-center py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-yellow-400 transition-all relative z-10">Ver unidades disponibles</button>
+          <button onClick={() => { document.getElementById('grilla-autos')?.scrollIntoView({ behavior: 'smooth' }); }} className="w-full bg-yellow-500 text-black text-center py-4 md:py-5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xs hover:bg-yellow-400 transition-all relative z-10">Ver unidades disponibles</button>
         </div>
+        
       </section>
 
       <div className="max-w-7xl mx-auto px-6 space-y-24 mb-24 flex-grow" id="grilla-autos">
         {stockMaxi.length > 0 && (
           <section>
-            <div className="flex items-center gap-4 mb-10 border-l-8 border-black pl-6">
-              <div><h2 className="text-4xl font-black uppercase tracking-tighter">Stock Maxiautomotores</h2><p className="text-gray-400 font-bold text-xs uppercase tracking-widest">Unidades propias seleccionadas para reventa</p></div>
+            <div className="flex items-center gap-3 md:gap-4 mb-8 md:mb-10 border-l-8 border-black pl-4 md:pl-6">
+              <div>
+                <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter">Stock Maxiautomotores</h2>
+                <p className="text-gray-400 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-1">Unidades propias seleccionadas para reventa</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {stockMaxi.map(v => <CardVehiculo key={v.id} v={v} sesion={sesion} favoritosIds={favoritosIds} setFavoritosIds={setFavoritosIds} colorEtiqueta="bg-black text-white" textoEtiqueta="Propio" onRequestLogin={() => setMostrarModalLogin(true)} />)}
@@ -164,16 +173,16 @@ export default function Home() {
           </section>
         )}
 
-        <section className="bg-white rounded-[3rem] p-10 text-black border-4 border-black relative overflow-hidden shadow-xl">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-            <div className="flex items-center gap-6">
-              <div className="bg-yellow-500 text-black p-5 rounded-3xl shadow-xl"><BellRing size={32} /></div>
+        <section className="bg-white rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 text-black border-4 border-black relative overflow-hidden shadow-xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 relative z-10 text-center md:text-left">
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+              <div className="bg-yellow-500 text-black p-4 md:p-5 rounded-3xl shadow-xl"><BellRing size={32} /></div>
               <div>
-                <h3 className="text-2xl font-black uppercase leading-none mb-2">¡Activá las Alertas!</h3>
-                <p className="text-gray-500 font-bold text-sm">Te avisamos al mail cada vez que ingrese una unidad nueva de Maxi o de la Red.</p>
+                <h3 className="text-xl md:text-2xl font-black uppercase leading-none mb-2">¡Activá las Alertas!</h3>
+                <p className="text-gray-500 font-bold text-xs md:text-sm">Te avisamos al mail cada vez que ingrese una unidad nueva.</p>
               </div>
             </div>
-            <button onClick={activarAlertasEmail} className="bg-black text-white px-8 py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-800 transition-colors shadow-lg">
+            <button onClick={activarAlertasEmail} className="w-full md:w-auto bg-black text-white px-6 md:px-8 py-4 md:py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xs hover:bg-zinc-800 transition-colors shadow-lg">
               {sesion ? 'Activar Alertas de Stock' : 'Iniciá sesión para activar'}
             </button>
           </div>
@@ -182,8 +191,11 @@ export default function Home() {
 
         {stockOportunidades.length > 0 && (
           <section>
-            <div className="flex items-center gap-4 mb-10 border-l-8 border-red-600 pl-6">
-              <div><h2 className="text-4xl font-black uppercase tracking-tighter">Oportunidades de la Red</h2><p className="text-gray-400 font-bold text-xs uppercase tracking-widest">Vehículos de terceros publicados en nuestra plataforma</p></div>
+            <div className="flex items-center gap-3 md:gap-4 mb-8 md:mb-10 border-l-8 border-red-600 pl-4 md:pl-6">
+              <div>
+                <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter">Oportunidades de la Red</h2>
+                <p className="text-gray-400 font-bold text-[10px] md:text-xs uppercase tracking-widest mt-1">Vehículos de terceros publicados en nuestra plataforma</p>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {stockOportunidades.map(v => <CardVehiculo key={v.id} v={v} sesion={sesion} favoritosIds={favoritosIds} setFavoritosIds={setFavoritosIds} colorEtiqueta="bg-red-600 text-white" textoEtiqueta="Oportunidad" onRequestLogin={() => setMostrarModalLogin(true)} />)}
@@ -202,8 +214,8 @@ export default function Home() {
 
       <section className="bg-white py-24 mb-0 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-black uppercase tracking-tighter mb-4">Gente que confía en Maxiautomotores</h2>
+          <div className="text-center mb-10 md:mb-16">
+            <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter mb-4 break-words">Gente que confía en Maxiautomotores</h2>
             <div className="w-20 h-2 bg-yellow-500 mx-auto rounded-full"></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

@@ -98,20 +98,19 @@ export default function LoginPage() {
 
         <div className="w-full md:w-7/12 p-8 md:p-12 lg:p-16 bg-white">
           
-          {/* HEADER MOBILE CON LOGO */}
-          <div className="md:hidden flex items-center justify-center mb-8 border-b pb-6">
-            <img src="/logo.png" alt="Maxi Automotores" className="h-14 w-auto object-contain drop-shadow-md" />
+          {/* HEADER MOBILE CON LOGO (Fondo oscuro para que resalte) */}
+          <div className="md:hidden flex items-center justify-center mb-8 bg-black p-5 rounded-3xl shadow-xl border border-zinc-800">
+            <img src="/logo.png" alt="Maxi Automotores" className="h-12 w-auto object-contain" />
           </div>
 
-          <div className="mb-10">
+          <div className="mb-10 text-center md:text-left">
             <h2 className="text-3xl font-black text-black uppercase tracking-tighter">
               {esRegistro ? 'Crear Cuenta' : 'Iniciar Sesión'}
             </h2>
-            <p className="text-sm font-bold text-gray-400 mt-2">
+            <p className="text-sm font-bold text-gray-500 mt-2">
               {esRegistro ? 'Completá tus datos para acceder a las ofertas.' : 'Ingresá para ver tus favoritos y novedades.'}
             </p>
           </div>
-
           {error && (
             <div className="bg-red-50 text-red-600 p-4 rounded-2xl flex items-center gap-3 text-xs font-black uppercase tracking-wide mb-8 border border-red-100">
               <AlertCircle size={18} className="shrink-0" /> {error}

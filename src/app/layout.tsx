@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: "MaxiAutomotores | Compra y venta de autos",
   description: "Compramos tu vehículo en cualquier estado y vendemos unidades con alto potencial de rentabilidad para talleristas.",
   icons: {
-    icon: "/logo.jpg", 
+    icon: "/logo.png", 
     apple: "/logo.jpg",
   },
   openGraph: {

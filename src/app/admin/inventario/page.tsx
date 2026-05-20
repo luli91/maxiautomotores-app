@@ -369,14 +369,52 @@ export default function InventarioPage() {
       )}
 
       {/* VISTA NORMAL DE LA PÁGINA (TABLA) */}
-      <div className="p-8 border-b border-gray-100 bg-gray-50 flex justify-between items-center no-print">
+      <div className="p-6 md:p-8 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 no-print">
         <h2 className="text-xl font-black uppercase tracking-tighter">Control de Inventario</h2>
-        <button onClick={() => router.push('/admin/publicar')} className="bg-black text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-colors">
+        <button onClick={() => router.push('/admin/publicar')} className="w-full sm:w-auto bg-black text-white px-4 py-3 sm:py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-colors text-center">
           + Publicar Auto
         </button>
       </div>
-      
-      <div className="overflow-x-auto p-4 md:p-8 no-print">
+
+      {/* VISTA MÓVIL (Tarjetas en lugar de tabla para no tener scroll horizontal) */}
+      <div className="md:hidden p-4 space-y-4 no-print bg-gray-100">
+        {listaVehiculos.map(v => {
+          const tituloCompleto = v.marca ? `${v.marca} ${v.titulo}` : v.titulo;
+          return (
+            <div key={v.id} className="bg-white p-4 rounded-[2rem] shadow-sm border border-gray-100">
+              <div className="flex gap-4 items-center mb-4">
+                <div className="h-16 w-16 rounded-xl bg-gray-200 overflow-hidden border shrink-0">
+                  {v.fotos?.[0] ? <img src={v.fotos[0]} className="h-full w-full object-cover" /> : <Car className="m-4 text-gray-400 opacity-50" />}
+                </div>
+                <div>
+                  <p className="font-black text-black uppercase leading-tight text-sm">{tituloCompleto}</p>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Lote {v.numero_lote} • {v.año}</p>
+                  <p className="font-black text-green-600 mt-1">${v.precio_venta.toLocaleString()}</p>
+                </div>
+              </div>
+              <div className="flex justify-between items-center pt-3 border-t border-gray-50">
+                <select 
+                  value={v.es_sold ? 'vendido' : 'disponible'}
+                  onChange={(e) => cambiarEstadoVenta(v.id, e.target.value)}
+                  className={`text-[9px] font-black uppercase tracking-widest px-2 py-1.5 rounded-lg outline-none border-2 ${v.es_sold ? 'bg-red-50 text-red-700 border-red-200' : 'bg-green-50 text-green-700 border-green-200'}`}
+                >
+                  <option value="disponible">🟢 Disp</option>
+                  <option value="vendido">🔴 Vend</option>
+                </select>
+                <div className="flex gap-2">
+                  <button onClick={() => setVehiculoCartel(v)} className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Printer size={14} /></button>
+                  <button onClick={() => abrirModalEdicion(v)} className="p-2 bg-gray-100 text-gray-600 rounded-lg"><Edit3 size={14} /></button>
+                  <button onClick={() => eliminarVehiculo(v.id)} className="p-2 bg-red-50 text-red-500 rounded-lg"><Trash2 size={14} /></button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+        {listaVehiculos.length === 0 && <p className="text-center py-10 font-bold text-gray-400">No hay vehículos.</p>}
+      </div>
+
+      {/* VISTA DESKTOP (La tabla original que tenías, solo visible en compu) */}
+      <div className="hidden md:block overflow-x-auto p-8 no-print">
         <table className="w-full text-left text-sm whitespace-nowrap">
           <thead>
             <tr className="text-[10px] font-black uppercase text-gray-400 tracking-widest border-b-2 border-gray-100">
@@ -401,38 +439,24 @@ export default function InventarioPage() {
                         <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
                           Lote {v.numero_lote} • {v.año} • <Eye size={10} className="text-gray-400" /> {v.vistas || 0} vistas
                         </p>
-                        <span className="inline-block mt-1 text-[8px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
-                          🔧 {v.tipo_dano || 'Mecánica'}
-                        </span>
                       </div>
                     </div>
                   </td>
                   <td className="py-4 px-2 font-black text-green-600">${v.precio_venta.toLocaleString()}</td>
                   <td className="py-4 px-2 text-center">
-                    <select 
-                      value={v.es_sold ? 'vendido' : 'disponible'}
-                      onChange={(e) => cambiarEstadoVenta(v.id, e.target.value)}
-                      className={`text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-xl outline-none cursor-pointer border-2 transition-colors ${
-                        v.es_sold ? 'bg-red-50 text-red-700 border-red-200' : 'bg-green-50 text-green-700 border-green-200'
-                      }`}
-                    >
+                    <select value={v.es_sold ? 'vendido' : 'disponible'} onChange={(e) => cambiarEstadoVenta(v.id, e.target.value)} className={`text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-xl outline-none cursor-pointer border-2 transition-colors ${v.es_sold ? 'bg-red-50 text-red-700 border-red-200' : 'bg-green-50 text-green-700 border-green-200'}`}>
                       <option value="disponible">🟢 Disponible</option>
                       <option value="vendido">🔴 Vendido</option>
                     </select>
                   </td>
                   <td className="py-4 px-2 text-right space-x-2">
-                    {/* BOTÓN NUEVO: IMPRIMIR QR */}
                     <button onClick={() => setVehiculoCartel(v)} className="p-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-colors" title="Imprimir Cartel QR"><Printer size={16} /></button>
-                    
                     <button onClick={() => abrirModalEdicion(v)} className="p-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-black hover:text-white transition-colors" title="Editar"><Edit3 size={16} /></button>
                     <button onClick={() => eliminarVehiculo(v.id)} className="p-2.5 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-colors" title="Eliminar"><Trash2 size={16} /></button>
                   </td>
                 </tr>
               )
             })}
-            {listaVehiculos.length === 0 && (
-              <tr><td colSpan={4} className="text-center py-10 font-bold text-gray-400">No hay vehículos registrados.</td></tr>
-            )}
           </tbody>
         </table>
       </div>
