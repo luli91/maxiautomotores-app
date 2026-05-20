@@ -196,8 +196,25 @@ export default function DetalleAuto() {
                 <h3 className="text-[10px] font-black mb-4 uppercase tracking-widest text-gray-400 flex items-center">
                   <BadgeCheck className="mr-2 text-blue-600" size={16} /> Documentación Legal
                 </h3>
+                {auto.tipo_tramite && (
+                  <div className="mb-5 flex flex-wrap gap-2">
+                    {auto.tipo_tramite.split(',').map((tramite: string, index: number) => {
+                      if (!tramite.trim()) return null; // Evita mostrar vacíos
+                      return (
+                        <span key={index} className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase">
+                          {tramite.trim()}
+                        </span>
+                      )
+                    })}
+                  </div>
+                )}
                 <div className="space-y-2">
-                  {[ {l: 'VTV Vigente', v: auto.vtv}, {l: 'Verif. Policial (F12)', v: auto.verificacion_policial}, {l: 'Informe de Dominio', v: auto.informe_dominio}, {l: 'Libre de Deuda', v: auto.libre_deuda} ].map(d => (
+                  {[ 
+                    {l: 'VTV Vigente', v: auto.vtv}, 
+                    {l: 'Verif. Policial (F12)', v: auto.verificacion_policial}, 
+                    {l: 'Informe de Dominio', v: auto.informe_dominio}, 
+                    {l: 'Libre de Deuda', v: auto.libre_deuda} 
+                  ].map(d => (
                       <div key={d.l} className={`flex items-center justify-between p-3 rounded-xl border ${d.v ? 'bg-green-50 border-green-100 text-green-700' : 'bg-gray-50 text-gray-300'}`}>
                         <span className="text-[10px] font-black uppercase">{d.l}</span>
                         {d.v ? <CheckCircle2 size={16} /> : <XCircle size={16} />}

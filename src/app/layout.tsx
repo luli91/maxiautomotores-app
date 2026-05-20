@@ -17,14 +17,14 @@ export const metadata: Metadata = {
   title: "MaxiAutomotores | Compra y venta de autos",
   description: "Compramos tu vehículo en cualquier estado y vendemos unidades con alto potencial de rentabilidad para talleristas.",
   icons: {
-    icon: "/logo.png", 
-    apple: "/logo.png",
+    icon: "/logo.jpg", 
+    apple: "/logo.jpg",
   },
   openGraph: {
     title: "MaxiAutomotores | Compra y Venta de Vehículos",
     description: "El stock más grande de autos con detalles, siniestrados y oportunidades de inversión en Zona Oeste.",
     siteName: "MaxiAutomotores",
-    images: ["/logo.png"],
+    images: ["/logo.jpg"],
     locale: "es_AR",
     type: "website",
   },

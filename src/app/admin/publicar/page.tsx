@@ -11,6 +11,16 @@ const MARCAS_AUTOS = [
   "Suzuki", "Toyota", "Volkswagen", "Otra"
 ];
 
+const OPCIONES_TRAMITE = [
+  "solo cédula", 
+  "en sucesión", 
+  "titular fallecido", 
+  "título", 
+  "cédula",
+  "08 Firmado", 
+  "Transferencia Directa"
+];
+
 export default function PublicarPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -20,6 +30,8 @@ export default function PublicarPage() {
   const [archivosFotos, setArchivosFotos] = useState<File[]>([]);
   const [previsualizaciones, setPrevisualizaciones] = useState<string[]>([]);
   const [subiendoFotos, setSubiendoFotos] = useState(false);
+  
+  const [precioDisplay, setPrecioDisplay] = useState('');
 
   useEffect(() => {
     async function inicializar() {
@@ -31,6 +43,13 @@ export default function PublicarPage() {
     }
     inicializar();
   }, []);
+
+  const handlePrecioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\./g, '');
+    if (/^\d*$/.test(rawValue)) {
+      setPrecioDisplay(rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, "."));
+    }
+  };
 
   const handleSeleccionarFotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -74,8 +93,8 @@ export default function PublicarPage() {
       kilometraje: formData.get('kilometraje'),
       ubicacion: formData.get('ubicacion'),
       radicacion: formData.get('radicacion'),
-      tipo_tramite: formData.get('tramite'),
-      precio_venta: Number(formData.get('precio')),
+      tipo_tramite: formData.getAll('tramite').join(', '), 
+      precio_venta: Number(precioDisplay.replace(/\./g, '')), 
       observaciones: formData.get('observaciones'),
       video_youtube: formData.get('video_youtube') || null,
       fotos: urlsFotosFinales,
@@ -185,8 +204,6 @@ export default function PublicarPage() {
           <section className="space-y-4">
             <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest"><Car className="inline mr-2" size={14} /> Ficha Técnica Base</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
-              {/* ACÁ ESTÁ EL NUEVO SELECT DE MARCAS */}
               <div className="md:col-span-1">
                 <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Marca</label>
                 <select name="marca" required className="w-full p-3 border rounded-xl font-black bg-white outline-none">
@@ -227,8 +244,6 @@ export default function PublicarPage() {
               <div><label className="text-[10px] font-black uppercase text-gray-400 ml-1">Radicación</label><input name="radicacion" className="w-full p-3 border rounded-xl bg-white outline-none" /></div>
             </div>
           </section>
-
-          {/* NUEVA SECCIÓN: ESTADO PARA TALLERISTAS */}
           <section className="space-y-4">
             <h3 className="text-xs font-black uppercase text-blue-600 tracking-widest flex items-center bg-blue-50 p-2 rounded-lg w-fit">
               <Wrench className="inline mr-2" size={14} /> Estado de Componentes Clave (Talleristas)
@@ -261,7 +276,7 @@ export default function PublicarPage() {
                 <label className="flex items-center gap-3 bg-white p-4 rounded-2xl border cursor-pointer hover:border-black transition-colors">
                   <input type="checkbox" name="vehiculo_camina" className="w-5 h-5 accent-black" /> 
                   <div>
-                    <p className="text-xs font-black uppercase">El auto camina</p>
+                    <p className="text-xs font-black uppercase">El auto rueda</p>
                     <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">Se puede mover por sus medios</p>
                   </div>
                 </label>
@@ -277,7 +292,7 @@ export default function PublicarPage() {
                 <label className="flex items-center gap-3 bg-white p-4 rounded-2xl border cursor-pointer hover:border-black transition-colors">
                   <input type="checkbox" name="chasis_afectado" className="w-5 h-5 accent-black" /> 
                   <div>
-                    <p className="text-xs font-black uppercase text-red-600">Chasis Afectado</p>
+                    <p className="text-xs font-black uppercase">Chasis Afectado</p>
                     <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">Daño estructural</p>
                   </div>
                 </label>
@@ -289,24 +304,54 @@ export default function PublicarPage() {
           {/* LEGAL Y PRECIO */}
           <section className="space-y-4">
             <h3 className="text-xs font-black uppercase text-gray-400 tracking-widest"><ClipboardCheck className="inline mr-2" size={14} /> Legal y Valor</h3>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Trámite</label>
-                <select name="tramite" className="w-full p-3 border rounded-xl font-bold bg-white outline-none">
-                  <option value="08 Firmado - Listo para transferir">08 Firmado - Listo para transferir</option><option value="Transferencia Directa">Transferencia Directa</option><option value="08 en trámite">08 en trámite</option>
-                </select>
+              
+              {/* CAJA UNIFICADA DE DOCUMENTACIÓN (Ocupa las 2 columnas) */}
+              <div className="md:col-span-2 bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-6">
+                
+                {/* Parte 1: Trámites */}
+                <div>
+                  <label className="text-[10px] font-black uppercase text-gray-500 ml-1 block mb-3">Estado del Trámite</label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {OPCIONES_TRAMITE.map(item => (
+                      <label key={item} className="flex items-center text-[10px] font-black uppercase cursor-pointer hover:text-black">
+                        <input type="checkbox" name="tramite" value={item} className="mr-2 w-4 h-4 accent-black" /> {item}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Parte 2: Informes y VTV */}
+                <div className="border-t border-gray-200 pt-5">
+                  <label className="text-[10px] font-black uppercase text-gray-500 ml-1 block mb-3">Documentación Adicional</label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {['vtv', 'verificacion_policial', 'informe_dominio', 'libre_deuda'].map(item => (
+                      <label key={item} className="flex items-center text-[10px] font-black uppercase cursor-pointer hover:text-black">
+                        <input type="checkbox" name={item} className="mr-2 w-4 h-4 accent-black" /> {item.replace('_', ' ')}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
               </div>
-              <div className="grid grid-cols-2 gap-2 bg-gray-50 p-4 rounded-2xl border">
-                {['vtv', 'verificacion_policial', 'informe_dominio', 'libre_deuda'].map(item => (
-                  <label key={item} className="flex items-center text-[10px] font-black uppercase cursor-pointer"><input type="checkbox" name={item} className="mr-2 w-4 h-4 accent-black" /> {item.replace('_', ' ')}</label>
-                ))}
-              </div>
+              
+              {/* PRECIO Y OBSERVACIONES */}
               <div className="md:col-span-2">
-                  <label className="text-[10px] font-black uppercase text-green-600 ml-1">Precio Fijo ($)</label>
-                  <input name="precio" type="number" required className="w-full p-4 border-2 border-green-100 rounded-2xl bg-white text-black font-black text-lg outline-none focus:border-green-500" />
+                  <label className="text-[10px] font-black uppercase text-green-600 ml-1 block mb-2">Precio Fijo ($)</label>
+                  <input 
+                    name="precio" 
+                    type="text" 
+                    required 
+                    value={precioDisplay}
+                    onChange={handlePrecioChange}
+                    placeholder="Ej: 1.500.000" 
+                    className="w-full p-4 border-2 border-green-100 rounded-2xl bg-white text-black font-black text-lg outline-none focus:border-green-500" 
+                  />
               </div>
+
               <div className="md:col-span-2">
-                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Observaciones / Faltantes para el taller</label>
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1 block mb-2">Observaciones / Faltantes para el taller</label>
                 <textarea name="observaciones" rows={3} placeholder="Detallá piezas faltantes, golpes ocultos, o aclaraciones para el mecánico..." className="w-full p-3 border rounded-xl bg-white outline-none focus:border-yellow-500"></textarea>
               </div>
             </div>
